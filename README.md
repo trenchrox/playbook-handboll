@@ -14,7 +14,7 @@ surfplatta i liggande läge.
 ## Kärnidé
 
 Rita fritt — men varje draget streck är en spelbar bana. Placera brickor, dra deras löpvägar med
-fingret och tryck play: alla brickor glider längs sina banor, fas för fas. Inga tidslinjer, inga
+fingret och tryck play: alla brickor glider längs sina banor, steg för steg. Inga tidslinjer, inga
 keyframes, inga rörelsemallar. Mallar används bara för försvarsuppställningar (startpositioner).
 
 - **Rita** — halvplan med korrekt handbollsgeometri (6m, 9m, 7m, 4m, målbur), målburen uppåt så laget
@@ -30,7 +30,7 @@ keyframes, inga rörelsemallar. Mallar används bara för försvarsuppställning
   kategori och försvarsuppställning, duplicera för varianter, papperskorg i stället för hård radering.
 - **Inställningar** — export/import av hela banken (ersätt allt eller slå ihop), förvalt försvar,
   uppspelningshastighet, ljust/mörkt tema.
-- **Visningsläge** — fullskärm utan redigerings-UI, stora brickor, play/reset och fasstegning. För att
+- **Visningsläge** — fullskärm utan redigerings-UI, stora brickor, play/reset och stegning. För att
   vända plattan mot laget i en timeout.
 
 Ett spelmönster är 2–3 kB. 500 mönster ≈ 1 MB — ingen lagringsrisk.
