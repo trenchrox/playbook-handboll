@@ -205,22 +205,22 @@
   .filterbar .fgrp.wide { flex: 1; min-width: 220px; }
 
   /* ---------- Ritytan ---------- */
-  .toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 18px; background: var(--panel);
-    border-bottom: 1px solid var(--line); flex-shrink: 0; flex-wrap: wrap; }
-  .tpair { display: inline-flex; align-items: center; gap: 10px; }
+  .toolbar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--panel);
+    border-bottom: 1px solid var(--line); flex-shrink: 0; flex-wrap: wrap; row-gap: 8px; }
+  .tpair { display: inline-flex; align-items: center; gap: 8px; }
   .toolbar .grp { display: flex; gap: 1px; background: var(--line); border: 1px solid var(--line); }
-  .tbtn { background: var(--panel-2); color: var(--ink-dim); padding: 11px 15px; font-size: 14px;
-    font-weight: 700; transition: var(--tap); display: flex; align-items: center; gap: 7px; }
+  .tbtn { background: var(--panel-2); color: var(--ink-dim); padding: 10px 13px; font-size: 13.5px;
+    font-weight: 700; transition: var(--tap); display: flex; align-items: center; gap: 6px; }
   .tbtn svg { width: 16px; height: 16px; }
   .tbtn:active { transform: scale(0.96); }
   .tbtn.on { background: var(--save); color: var(--on-save); }
   .tbtn.solo { border: 1px solid var(--line); }
   .tbtn.play.on { background: var(--accent); color: #1a1205; }
   .tbtn[disabled] { opacity: 0.4; }
-  .tlabel { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
-    color: var(--ink-faint); margin-right: -3px; }
+  .tlabel { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--ink-faint); }
   .toolbar .sep { flex: 1; }
-  .toolbar select { width: auto; margin-bottom: 0; padding: 11px 13px; font-size: 14px; font-weight: 600; }
+  .toolbar select { width: auto; margin-bottom: 0; padding: 10px 11px; font-size: 13.5px; font-weight: 600; }
 
   .stage { flex: 1; display: flex; min-height: 0; }
   .stencil { width: 132px; flex-shrink: 0; background: var(--panel); border-right: 1px solid var(--line);
@@ -256,10 +256,10 @@
   svg.court .tk-lbl.def { fill: var(--on-def); }
   svg.court .tk.sel .tk-shape { stroke: var(--ink); stroke-width: 0.16; }
   svg.court .pth { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  svg.court .pth.run { stroke: var(--save); }
-  svg.court .pth.pass { stroke: var(--accent); stroke-dasharray: 0.55 0.4; }
-  svg.court .pth.dribble { stroke: var(--blue); }
-  svg.court .pth.hit { stroke: transparent; stroke-width: 1.1; cursor: pointer; }
+  svg.court .pth.run { stroke: var(--save); stroke-dasharray: 0.46 0.3; }
+  svg.court .pth.pass { stroke: var(--accent); }
+  svg.court .pth.dribble { stroke: var(--blue); stroke-dasharray: 0.17 0.15; }
+  svg.court .pth.hit { stroke: transparent; stroke-width: 0.8; cursor: pointer; }
   svg.court .pth.sel { stroke: var(--ink); }
   svg.court .phbadge { font-size: 0.62px; font-weight: 700; text-anchor: middle;
     dominant-baseline: central; fill: var(--ink); pointer-events: none; }
@@ -292,7 +292,8 @@
     display: flex; align-items: center; gap: 9px; }
   .presentbar .pbtn svg { width: 20px; height: 20px; }
   .presentbar .pbtn:active { transform: scale(0.96); background: var(--panel-3); }
-  .presentbar .pbtn.main { background: var(--save); color: var(--on-save); border-color: transparent; }
+  .presentbar .pbtn.main, .presentbar .pbtn.on { background: var(--save); color: var(--on-save);
+    border-color: transparent; }
   .presentbar .pname { font-family:'Big Shoulders','Instrument Sans',sans-serif; font-size: 26px;
     font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
   .presentbar .pnote { font-size: 14px; color: var(--ink-dim); font-weight: 600; }
@@ -397,6 +398,11 @@
     </select></span>
     <button class="tbtn solo" id="undoBtn"><span data-svg="undo"></span>Ångra</button>
     <button class="tbtn solo" id="clearBtn"><span data-svg="trash"></span>Rensa</button>
+    <span class="tpair"><span class="tlabel">Visa</span>
+      <span class="grp">
+        <button class="tbtn on" id="tglPaths">Banor</button>
+        <button class="tbtn on" id="tglNums">Nummer</button>
+      </span></span>
     <span class="sep"></span>
     <button class="tbtn solo play" id="playBtn"><span data-svg="play"></span>Play</button>
     <button class="tbtn solo" id="resetBtn"><span data-svg="reset"></span>Reset</button>
@@ -431,11 +437,11 @@
     <div class="courtwrap">
       <svg class="court" id="court" viewBox="-0.7 -0.7 21.4 22.4" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <marker id="arwRun" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="4" markerHeight="4"
+          <marker id="arwRun" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5"
             orient="auto" markerUnits="strokeWidth"><path d="M0.5,1 L9.5,5 L0.5,9 Z" class="mk-run"/></marker>
-          <marker id="arwPass" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="4" markerHeight="4"
+          <marker id="arwPass" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5"
             orient="auto" markerUnits="strokeWidth"><path d="M0.5,1 L9.5,5 L0.5,9 Z" class="mk-pass"/></marker>
-          <marker id="arwDribble" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="4" markerHeight="4"
+          <marker id="arwDribble" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5"
             orient="auto" markerUnits="strokeWidth"><path d="M0.5,1 L9.5,5 L0.5,9 Z" class="mk-dribble"/></marker>
         </defs>
         <g id="gCourt"></g>
@@ -451,6 +457,7 @@
     <span class="pnote" id="prNote"></span>
     <span class="sep"></span>
     <div class="phasesteps" id="prSteps"></div>
+    <button class="pbtn on" id="prPaths">Banor</button>
     <button class="pbtn main" id="prPlay"><span data-svg="play"></span>Play</button>
     <button class="pbtn" id="prReset"><span data-svg="reset"></span>Reset</button>
     <button class="pbtn" id="prExit"><span data-svg="close"></span>Stäng</button>
@@ -528,6 +535,8 @@
         <li>Mönstret kan ha <b>sex steg</b>. Varje steg börjar där det förra slutade: väljer du steg 2 visar
           planen var alla står efter steg 1, och där ritar du vidare. En <b>passning</b> lämnar bollen hos
           den som står vid passningens slutpunkt, så nästa steg börjar hos mottagaren.</li>
+        <li><b>Visa</b> stänger av banorna eller försvararnas nummer när planen blir för full — brickorna
+          går att flytta som vanligt, och Play spelar upp mönstret även med banorna avstängda.</li>
         <li>Tryck på en ritad bana för att radera, rita om den eller flytta den till ett annat steg.
           <b>Ångra</b> tar tillbaka de senaste ändringarna.</li>
       </ul>
@@ -663,7 +672,7 @@ const DEF_POS=['1','2','3','MV'];   // ytter · halv · mitt · målvakt
 const MAX_STEPS=6;
 
 function freshRoot(){
-  return { v:3, patterns:[], trash:[], settings:{ def:'6-0', speed:'normal', theme:'dark' }, draft:null };
+  return { v:3, patterns:[], trash:[], settings:{ def:'6-0', speed:'normal', theme:'dark', showPaths:true, showDefNums:true }, draft:null };
 }
 function freshDraft(){
   return { id:null, name:'', category:CATS[0], defense:'none', note:'', tokens:[], paths:[], created:null, updated:null };
@@ -682,6 +691,8 @@ function normalizeRoot(d){
     if(DEFS.indexOf(d.settings.def)>=0) r.settings.def=d.settings.def;
     if(d.settings.speed==='slow'||d.settings.speed==='normal') r.settings.speed=d.settings.speed;
     if(d.settings.theme==='light'||d.settings.theme==='dark') r.settings.theme=d.settings.theme;
+    if(typeof d.settings.showPaths==='boolean') r.settings.showPaths=d.settings.showPaths;
+    if(typeof d.settings.showDefNums==='boolean') r.settings.showDefNums=d.settings.showDefNums;
   }
   if(d.draft) r.draft=normalizePattern(d.draft, true);
   if((Number(d.v)||1) < 2){
@@ -894,7 +905,8 @@ function renderTokens(){
     } else if(t.kind==='def'){
       shape=`<circle class="tk-shape" r="${(R_DEF*s).toFixed(3)}" fill="var(--def)"/>`;
       const fs = t.label && t.label.length>1 ? 0.42 : 0.52;
-      lbl=t.label?`<text class="tk-lbl def" font-size="${(fs*s).toFixed(3)}">${esc(t.label)}</text>`:'';
+      lbl=(t.label && root.settings.showDefNums)
+        ? `<text class="tk-lbl def" font-size="${(fs*s).toFixed(3)}">${esc(t.label)}</text>` : '';
     } else {
       shape=`<circle class="tk-shape" r="${(R_BALL*s).toFixed(3)}" fill="var(--accent)"/>`;
     }
@@ -917,23 +929,6 @@ function smoothD(pts){
   return d;
 }
 
-/* sicksack längs en mittlinje — dribbling */
-function zigzagD(el, len){
-  const amp=0.2, wave=0.52;
-  const n=Math.max(4, Math.round(len/wave));
-  let d='';
-  for(let i=0;i<=n;i++){
-    const l=len*i/n;
-    const p=el.getPointAtLength(l);
-    const q=el.getPointAtLength(Math.min(len, l+0.06));
-    const dx=q.x-p.x, dy=q.y-p.y, m=Math.hypot(dx,dy)||1;
-    const off=(i===0||i===n)?0:(i%2?amp:-amp);
-    const x=p.x + (-dy/m)*off, y=p.y + (dx/m)*off;
-    d+=(i?` L`:`M`)+`${x.toFixed(3)},${y.toFixed(3)}`;
-  }
-  return d;
-}
-
 function renderPaths(){
   Object.keys(centerlines).forEach(k=>delete centerlines[k]);
   gPaths.innerHTML='';
@@ -949,10 +944,11 @@ function renderPaths(){
     centerlines[p.id]=cl;
     const len=cl.getTotalLength();
 
+    if(!root.settings.showPaths) return;   // centerlinjen finns kvar, så Play fungerar ändå
     const vis=document.createElementNS(NS,'path');
     vis.setAttribute('class','pth '+p.type+(selectedPath===p.id?' sel':''));
-    vis.setAttribute('stroke-width', p.type==='pass'?'0.15':'0.16');
-    vis.setAttribute('d', p.type==='dribble' ? zigzagD(cl,len) : d);
+    vis.setAttribute('stroke-width', p.type==='pass'?'0.12':'0.1');
+    vis.setAttribute('d', d);
     vis.setAttribute('marker-end','url(#'+(p.type==='run'?'arwRun':p.type==='pass'?'arwPass':'arwDribble')+')');
     gPaths.appendChild(vis);
 
@@ -1352,6 +1348,26 @@ document.getElementById('clearBtn').onclick=()=>{
       renderAll(); persist(); toast('Ritytan rensad');
     });
 };
+function applyViewToggles(){
+  const p=!!root.settings.showPaths, n=!!root.settings.showDefNums;
+  document.getElementById('tglPaths').classList.toggle('on', p);
+  document.getElementById('tglNums').classList.toggle('on', n);
+  document.getElementById('prPaths').classList.toggle('on', p);
+}
+function togglePaths(){
+  root.settings.showPaths=!root.settings.showPaths;
+  if(!root.settings.showPaths) selectPath(null);
+  applyViewToggles(); renderAll(); persist();
+  toast(root.settings.showPaths?'Banor visas':'Banor avstängda — brickorna går att flytta som vanligt');
+}
+function toggleDefNums(){
+  root.settings.showDefNums=!root.settings.showDefNums;
+  applyViewToggles(); renderTokens(); persist();
+  toast(root.settings.showDefNums?'Försvarets nummer visas':'Försvarets nummer avstängda');
+}
+document.getElementById('tglPaths').onclick=togglePaths;
+document.getElementById('tglNums').onclick=toggleDefNums;
+document.getElementById('prPaths').onclick=togglePaths;
 document.getElementById('speedSelect').onchange=e=>{
   root.settings.speed=e.target.value;
   document.getElementById('setSpeed').value=e.target.value;
@@ -1810,6 +1826,7 @@ function applySettingsToUI(){
   document.getElementById('setSpeed').value=root.settings.speed;
   document.getElementById('speedSelect').value=root.settings.speed;
   document.getElementById('defSelect').value=draft.defense||'none';
+  applyViewToggles();
   applyTheme();
 }
 async function boot(){

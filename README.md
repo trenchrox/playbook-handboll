@@ -21,8 +21,9 @@ keyframes, inga rörelsemallar. Mallar används bara för försvarsuppställning
   anfaller uppåt. Brickor dras ut ur sidopanelen: anfallare märkta med position (VK, V9, M9, H9, HK,
   M6, MV) eller nummer, försvarare numrerade efter roll (1 ytter · 2 halv · 3 mitt · MV målvakt), boll.
   Ett tryck ställer ut 6-0, 5-1, 3-2-1 eller 3-3 med målvakt — varje bricka är flyttbar efteråt.
-  Linjespråk: heldragen = löpväg, streckad = passning, sicksack = dribbling. Brickan följer med fingret
-  medan du ritar.
+  Linjespråk: tunn streckad = löpväg, heldragen = passning, finstreckad = dribbling — färgerna skiljer dem
+  också (grön, gul, blå). Brickan följer med fingret medan du ritar, och **Visa** stänger av banorna eller
+  försvarets nummer när planen blir för full.
 - **Steg** — ett mönster har upp till sex steg, och varje steg börjar där det förra slutade. Väljer du
   steg 3 visar planen var alla står efter steg 2, och där ritar du vidare. En passning lämnar bollen hos
   den som står vid passningens slutpunkt, så nästa steg börjar hos mottagaren. Play spelar stegen i ordning.
@@ -39,6 +40,8 @@ Ett spelmönster är 2–3 kB. 500 mönster ≈ 1 MB — ingen lagringsrisk.
 
 - **Planen är roterad** så att målburen ligger uppåt och laget anfaller uppåt (specen sa inget om
   riktning; detta är valt).
+- **Linjespråket är ändrat** på begäran: tunn streckad löpväg, heldragen passning, finstreckad dribbling.
+  Specens sicksack för dribbling är borta — streckning ovanpå en sicksack blev oläslig.
 - **Försvarare är cirklar** som anfallarna, skilda genom grå färg och rollnummer, och uppställningarna
   inkluderar försvarets målvakt. Specen föreslog en annan form för försvarare.
 - **Hjälpen ligger under Inställningar** i stället för som ett fjärde menyval — specens meny har tre
