@@ -41,6 +41,7 @@
     --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 28px rgba(0,0,0,0.35);
     --frame: #0a0a0a;
     --court: #050505;          /* planens yta */
+    --court-line: #6f6f75;     /* planens linjer — opaka, inte genomskinliga */
     --def: #8e8e93;            /* försvarare */
     --main-grad: radial-gradient(140% 100% at 0% 0%, #141414 0%, #000 60%);
     --nav-grad: linear-gradient(180deg, #161616 0%, #0a0a0a 100%);
@@ -67,6 +68,7 @@
     --shadow: 0 1px 2px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.08);
     --frame: #e7e7ec;
     --court: #ffffff;
+    --court-line: #9c9ca3;
     --def: #6b6b72;
     --main-grad: radial-gradient(140% 100% at 0% 0%, #f7f7fb 0%, #ececed 60%);
     --nav-grad: linear-gradient(180deg, #ffffff 0%, #f2f2f7 100%);
@@ -205,6 +207,7 @@
   /* ---------- Ritytan ---------- */
   .toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 18px; background: var(--panel);
     border-bottom: 1px solid var(--line); flex-shrink: 0; flex-wrap: wrap; }
+  .tpair { display: inline-flex; align-items: center; gap: 10px; }
   .toolbar .grp { display: flex; gap: 1px; background: var(--line); border: 1px solid var(--line); }
   .tbtn { background: var(--panel-2); color: var(--ink-dim); padding: 11px 15px; font-size: 14px;
     font-weight: 700; transition: var(--tap); display: flex; align-items: center; gap: 7px; }
@@ -239,10 +242,10 @@
     min-width: 0; min-height: 0; }
   svg.court { background: var(--court); border: 1px solid var(--line); box-shadow: var(--shadow);
     max-width: 100%; max-height: 100%; touch-action: none; }
-  .cline { fill: none; stroke: var(--line-2); stroke-width: 0.09; }
-  .cline.thick { stroke-width: 0.14; }
+  .cline { fill: none; stroke: var(--court-line); stroke-width: 0.1; }
+  .cline.thick { stroke-width: 0.16; }
   .cline.dash { stroke-dasharray: 0.4 0.32; }
-  .goalbox { fill: var(--panel-2); stroke: var(--line-2); stroke-width: 0.1; }
+  .goalbox { fill: var(--panel-2); stroke: var(--court-line); stroke-width: 0.12; }
   .mk-run { fill: var(--save); }
   .mk-pass { fill: var(--accent); }
   .mk-dribble { fill: var(--blue); }
@@ -371,31 +374,27 @@
 <!-- ============ RITA ============ -->
 <div class="view draw on" id="vDraw">
   <div class="toolbar">
-    <span class="tlabel">Läge</span>
-    <div class="grp">
-      <button class="tbtn on" data-mode="move"><span data-svg="hand"></span>Flytta</button>
-      <button class="tbtn" data-mode="path"><span data-svg="pen"></span>Bana</button>
-    </div>
-    <span class="tlabel">Bana</span>
-    <div class="grp">
-      <button class="tbtn on" data-ptype="run">Löpväg</button>
-      <button class="tbtn" data-ptype="pass">Passning</button>
-      <button class="tbtn" data-ptype="dribble">Dribbling</button>
-    </div>
-    <span class="tlabel">Fas</span>
-    <div class="grp">
-      <button class="tbtn on" data-phase="1">1</button>
-      <button class="tbtn" data-phase="2">2</button>
-      <button class="tbtn" data-phase="3">3</button>
-    </div>
-    <span class="tlabel">Försvar</span>
+    <span class="tpair"><span class="tlabel">Läge</span>
+      <span class="grp">
+        <button class="tbtn on" data-mode="move"><span data-svg="hand"></span>Flytta</button>
+        <button class="tbtn" data-mode="path"><span data-svg="pen"></span>Bana</button>
+      </span></span>
+    <span class="tpair"><span class="tlabel">Bana</span>
+      <span class="grp">
+        <button class="tbtn on" data-ptype="run">Löpväg</button>
+        <button class="tbtn" data-ptype="pass">Passning</button>
+        <button class="tbtn" data-ptype="dribble">Dribbling</button>
+      </span></span>
+    <span class="tpair"><span class="tlabel">Steg</span>
+      <span class="grp" id="stepBtns"></span></span>
+    <span class="tpair"><span class="tlabel">Försvar</span>
     <select id="defSelect">
       <option value="none">Inget</option>
       <option value="6-0">6-0</option>
       <option value="5-1">5-1</option>
       <option value="3-2-1">3-2-1</option>
       <option value="3-3">3-3</option>
-    </select>
+    </select></span>
     <button class="tbtn solo" id="undoBtn"><span data-svg="undo"></span>Ångra</button>
     <button class="tbtn solo" id="clearBtn"><span data-svg="trash"></span>Rensa</button>
     <span class="sep"></span>
@@ -411,11 +410,8 @@
 
   <div class="pathbar hidden" id="pathBar">
     <span class="pb-txt" id="pathBarTxt"></span>
-    <div class="grp">
-      <button class="tbtn" id="pathPhase1">Fas 1</button>
-      <button class="tbtn" id="pathPhase2">Fas 2</button>
-      <button class="tbtn" id="pathPhase3">Fas 3</button>
-    </div>
+    <span class="tpair"><span class="tlabel">Flytta till steg</span>
+      <span class="grp" id="pathStepBtns"></span></span>
     <button class="tbtn solo" id="pathRedraw"><span data-svg="pen"></span>Rita om</button>
     <button class="tbtn solo danger" id="pathDelete"><span data-svg="trash"></span>Radera bana</button>
     <span class="sep"></span>
@@ -454,11 +450,7 @@
     <span class="pname" id="prName">Nytt mönster</span>
     <span class="pnote" id="prNote"></span>
     <span class="sep"></span>
-    <div class="phasesteps" id="prPhases">
-      <button data-prphase="1">Fas 1</button>
-      <button data-prphase="2">Fas 2</button>
-      <button data-prphase="3">Fas 3</button>
-    </div>
+    <div class="phasesteps" id="prSteps"></div>
     <button class="pbtn main" id="prPlay"><span data-svg="play"></span>Play</button>
     <button class="pbtn" id="prReset"><span data-svg="reset"></span>Reset</button>
     <button class="pbtn" id="prExit"><span data-svg="close"></span>Stäng</button>
@@ -529,12 +521,15 @@
           av planen för att ta bort den.</li>
         <li>Välj en <b>försvarsuppställning</b> i verktygsraden — sex försvarare plus målvakt ställs ut på
           en gång, och varje bricka är fritt flyttbar efteråt.</li>
-        <li>Byt till läget <b>Bana</b> och dra med fingret från en bricka: linjen du drar blir brickans väg.
-          Heldragen = löpväg, streckad = passning, sicksack = dribbling.</li>
-        <li>Tryck <b>Play</b> — alla brickor glider samtidigt längs sina banor, fas för fas.</li>
-        <li>Lägg banor i <b>fas 1, 2 och 3</b> när mönstret har ett förlopp. Allt hamnar i fas 1 om du inte
-          väljer något annat.</li>
-        <li>Tryck på en ritad bana för att radera eller rita om den. <b>Ångra</b> tar tillbaka de senaste stegen.</li>
+        <li>Byt till läget <b>Bana</b> och dra med fingret från en bricka: linjen du drar blir brickans väg,
+          och brickan följer med fingret medan du ritar. Heldragen = löpväg, streckad = passning,
+          sicksack = dribbling.</li>
+        <li>Tryck <b>Play</b> — alla brickor glider samtidigt längs sina banor, steg för steg.</li>
+        <li>Mönstret kan ha <b>sex steg</b>. Varje steg börjar där det förra slutade: väljer du steg 2 visar
+          planen var alla står efter steg 1, och där ritar du vidare. En <b>passning</b> lämnar bollen hos
+          den som står vid passningens slutpunkt, så nästa steg börjar hos mottagaren.</li>
+        <li>Tryck på en ritad bana för att radera, rita om den eller flytta den till ett annat steg.
+          <b>Ångra</b> tar tillbaka de senaste ändringarna.</li>
       </ul>
     </div>
   </details>
@@ -542,7 +537,7 @@
     <summary><span class="help-ic" data-svg="present"></span><span>Visningsläge i hallen</span></summary>
     <div class="help-body">
       <p>Visningsläget döljer allt redigerings-UI: bara planen, stora brickor och play/reset kvar. Tänkt för att
-        vända plattan mot laget i en timeout. Du kan stega fas för fas med knapparna längst ner, så laget ser
+        vända plattan mot laget i en timeout. Du kan stega steg för steg med knapparna längst ner, så laget ser
         förloppet i delar. Nås från både ritytan och sidomenyn — och genom att öppna ett mönster i banken.</p>
     </div>
   </details>
@@ -665,9 +660,10 @@ const DEF_LABEL={none:'Inget försvar','6-0':'6-0','5-1':'5-1','3-2-1':'3-2-1','
 const PTYPE_LABEL={run:'Löpväg',pass:'Passning',dribble:'Dribbling'};
 const ATT_POS=['VK','V9','M9','H9','HK','M6','MV'];
 const DEF_POS=['1','2','3','MV'];   // ytter · halv · mitt · målvakt
+const MAX_STEPS=6;
 
 function freshRoot(){
-  return { v:2, patterns:[], trash:[], settings:{ def:'6-0', speed:'normal', theme:'dark' }, draft:null };
+  return { v:3, patterns:[], trash:[], settings:{ def:'6-0', speed:'normal', theme:'dark' }, draft:null };
 }
 function freshDraft(){
   return { id:null, name:'', category:CATS[0], defense:'none', note:'', tokens:[], paths:[], created:null, updated:null };
@@ -722,8 +718,8 @@ function normalizePattern(p, keepEmpty){
     const pts=Array.isArray(q.pts) ? q.pts.map(a=>[Number(a[0]),Number(a[1])])
       .filter(a=>isFinite(a[0])&&isFinite(a[1])) : [];
     if(pts.length<2) return null;
-    const ph=Number(q.phase);
-    return { id: q.id||uid(), tokenId: q.tokenId, phase: (ph===2||ph===3)?ph:1,
+    const st=Math.round(Number(q.step||q.phase))||1;   // phase = fältnamnet före steg-modellen
+    return { id: q.id||uid(), tokenId: q.tokenId, step: clamp(st,1,MAX_STEPS),
              type: PTYPE_LABEL[q.type]?q.type:'run', pts };
   }).filter(Boolean);
   // lösa bollkopplingar
@@ -792,7 +788,7 @@ const gTokens=document.getElementById('gTokens');
 
 let mode='move';            // 'move' | 'path'
 let pathType='run';
-let phase=1;
+let curStep=1;
 let selectedToken=null;
 let selectedPath=null;
 const centerlines={};       // pathId -> SVGPathElement (mätbar mittlinje)
@@ -815,16 +811,76 @@ function viewBoxFor(p, fit){
 }
 function applyViewBox(){ courtEl.setAttribute('viewBox', viewBoxFor(draft, presentMode)); }
 
+function setLivePosById(id,x,y){
+  const el=gTokens.querySelector('.tk[data-id="'+id+'"]');
+  if(el) el.setAttribute('transform',`translate(${x.toFixed(3)},${y.toFixed(3)})`);
+}
 function tokenById(id){ return draft.tokens.find(t=>t.id===id)||null; }
 function ballToken(){ return draft.tokens.find(t=>t.kind==='ball')||null; }
 
-function tokenPos(t){
-  if(t.kind==='ball' && t.attachedTo){
-    const o=tokenById(t.attachedTo);
-    if(o) return { x:o.x+BALL_OFF.x*tScale(), y:o.y+BALL_OFF.y*tScale() };
-  }
-  return { x:t.x, y:t.y };
+/* ---------- Positioner per steg ----------
+   En brickas x/y är läget i steg 1. Varje bana flyttar sin bricka, så läget i
+   steg N är slutpunkten på den sista banan före N. En passning flyttar bollen
+   och lämnar den hos den som står vid slutpunkten i nästa steg. */
+function movePathsFor(p, tokenId, s){
+  return p.paths.filter(q=>q.tokenId===tokenId && q.step===s && q.type!=='pass');
 }
+function passInStep(p, s){
+  const list=p.paths.filter(q=>q.step===s && q.type==='pass');
+  return list.length ? list[list.length-1] : null;
+}
+function lastPassBefore(p, step){
+  let found=null;
+  for(let s=1;s<step;s++){ const q=passInStep(p,s); if(q) found=q; }
+  return found;
+}
+function posAtStep(p, tk, step){
+  let x=tk.x, y=tk.y;
+  for(let s=1;s<step;s++){
+    const list=movePathsFor(p,tk.id,s);
+    if(list.length){ const e=list[list.length-1].pts[list[list.length-1].pts.length-1]; x=e[0]; y=e[1]; }
+  }
+  return { x, y };
+}
+function nearestPlayerTo(p, pt, step, excludeId){
+  let best=null, bd=1e9;
+  p.tokens.forEach(tk=>{
+    if(tk.kind==='ball' || tk.id===excludeId) return;
+    const q=posAtStep(p,tk,step);
+    const d=Math.hypot(q.x-pt[0], q.y-pt[1]);
+    if(d<bd){ bd=d; best=tk; }
+  });
+  return (best && bd<2.2) ? best.id : null;
+}
+function ballStateAtStep(p, step){
+  const b=p.tokens.find(tk=>tk.kind==='ball');
+  if(!b) return null;
+  let carrier=b.attachedTo||null, free={x:b.x,y:b.y};
+  for(let s=1;s<step;s++){
+    const pass=passInStep(p,s), own=movePathsFor(p,b.id,s);
+    if(pass){
+      const e=pass.pts[pass.pts.length-1];
+      free={x:e[0],y:e[1]};
+      carrier=nearestPlayerTo(p, e, s+1, pass.tokenId===b.id?null:pass.tokenId);
+    } else if(own.length){
+      const e=own[own.length-1].pts[own[own.length-1].pts.length-1];
+      free={x:e[0],y:e[1]};
+      carrier=nearestPlayerTo(p, e, s+1, null);
+    }
+  }
+  if(carrier){
+    const c=p.tokens.find(tk=>tk.id===carrier);
+    if(c){ const q=posAtStep(p,c,step);
+      return { x:q.x+BALL_OFF.x*tScale(), y:q.y+BALL_OFF.y*tScale(), carrier }; }
+  }
+  return { x:free.x, y:free.y, carrier:null };
+}
+function tokenPosAt(p, tk, step){
+  if(tk.kind==='ball'){ const st=ballStateAtStep(p,step); return st?{x:st.x,y:st.y}:{x:tk.x,y:tk.y}; }
+  return posAtStep(p,tk,step);
+}
+function tokenPos(tk){ return tokenPosAt(draft, tk, curStep); }
+function ballCarrierAt(step){ const st=ballStateAtStep(draft,step); return st?st.carrier:null; }
 
 function renderTokens(){
   const s=tScale();
@@ -881,7 +937,7 @@ function zigzagD(el, len){
 function renderPaths(){
   Object.keys(centerlines).forEach(k=>delete centerlines[k]);
   gPaths.innerHTML='';
-  const multiPhase=new Set(draft.paths.map(p=>p.phase)).size>1;
+  const multiStep=new Set(draft.paths.map(p=>p.step)).size>1;
   const NS='http://www.w3.org/2000/svg';
   draft.paths.forEach(p=>{
     const d=smoothD(p.pts);
@@ -905,7 +961,7 @@ function renderPaths(){
     hit.setAttribute('stroke-width','0.9'); hit.dataset.path=p.id;
     gPaths.appendChild(hit);
 
-    if(multiPhase){
+    if(multiStep){
       const mid=cl.getPointAtLength(len*0.55);
       const bg=document.createElementNS(NS,'circle');
       bg.setAttribute('class','phbadge-bg'); bg.setAttribute('r','0.42');
@@ -913,7 +969,7 @@ function renderPaths(){
       gPaths.appendChild(bg);
       const tx=document.createElementNS(NS,'text');
       tx.setAttribute('class','phbadge'); tx.setAttribute('x',mid.x); tx.setAttribute('y',mid.y);
-      tx.textContent=String(p.phase);
+      tx.textContent=String(p.step);
       gPaths.appendChild(tx);
     }
   });
@@ -986,6 +1042,48 @@ function applyFormation(key){
   renderAll(); persist();
   toast(pts? 'Uppställning '+key+' utställd — flytta fritt' : 'Försvaret borttaget');
 }
+/* Flytta en bricka i det steg man arbetar i. I steg 1 flyttas startläget och
+   hela dess rutt med; i senare steg flyttas slutpunkten på föregående bana så
+   att banorna hänger ihop. */
+function lastMovePathBefore(tokenId, step){
+  let found=null;
+  for(let s=1;s<step;s++){ const l=movePathsFor(draft,tokenId,s); if(l.length) found=l[l.length-1]; }
+  return found;
+}
+function translateTokenPaths(tokenId, afterStep, dx, dy){
+  draft.paths.forEach(q=>{
+    if(q.tokenId!==tokenId) return;
+    if(afterStep!==null && q.step<=afterStep) return;
+    q.pts=q.pts.map(pt=>[+(pt[0]+dx).toFixed(2), +(pt[1]+dy).toFixed(2)]);
+  });
+}
+function moveTokenTo(t, x, y, step){
+  const cur=tokenPosAt(draft,t,step);
+  const dx=x-cur.x, dy=y-cur.y;
+  if(!dx && !dy) return;
+  if(t.kind==='ball'){
+    const pass=lastPassBefore(draft, step);
+    if(pass){                       // bollen ligger där en passning slutade → flytta slutpunkten
+      const i=pass.pts.length-1;
+      pass.pts[i]=[+(pass.pts[i][0]+dx).toFixed(2), +(pass.pts[i][1]+dy).toFixed(2)];
+      return;
+    }
+    t.attachedTo=null;
+    t.x=+(t.x+dx).toFixed(2); t.y=+(t.y+dy).toFixed(2);
+    translateTokenPaths(t.id, null, dx, dy);
+    return;
+  }
+  const prior=lastMovePathBefore(t.id, step);
+  if(prior){
+    const i=prior.pts.length-1;
+    prior.pts[i]=[+(prior.pts[i][0]+dx).toFixed(2), +(prior.pts[i][1]+dy).toFixed(2)];
+    translateTokenPaths(t.id, prior.step, dx, dy);
+  } else {
+    t.x=+(t.x+dx).toFixed(2); t.y=+(t.y+dy).toFixed(2);
+    translateTokenPaths(t.id, null, dx, dy);
+  }
+}
+
 /* bollen fäster vid närmaste spelare om den släpps intill en */
 function maybeAttachBall(ball){
   let best=null, bd=1e9;
@@ -1045,11 +1143,18 @@ courtEl.addEventListener('pointerdown', e=>{
     selectPath(null);
     if(mode==='path'){
       const p=tokenPos(t);
-      drag={ kind:'draw', tokenId:t.id, raw:[[p.x,p.y]] };
+      // markören som följer fingret: passning flyttar bollen, annars brickan själv
+      const ball=ballToken();
+      const carrier=ballCarrierAt(curStep);
+      let liveId=t.id, followId=null;
+      if(pathType==='pass' && ball) liveId=ball.id;
+      else if(ball && carrier===t.id) followId=ball.id;
+      drag={ kind:'draw', tokenId:t.id, raw:[[p.x,p.y]], liveId, followId };
       selectedToken=t.id; renderTokens();
     } else {
       const p0=ptFromEvent(e), tp=tokenPos(t);
-      drag={ kind:'token', tokenId:t.id, dx:tp.x-p0.x, dy:tp.y-p0.y, moved:false, el:tkEl };
+      drag={ kind:'token', tokenId:t.id, dx:tp.x-p0.x, dy:tp.y-p0.y,
+             cur:{x:tp.x,y:tp.y}, moved:false, el:tkEl };
       selectedToken=t.id; renderTokens();
     }
     e.preventDefault();
@@ -1066,17 +1171,12 @@ courtEl.addEventListener('pointermove', e=>{
   if(drag.kind==='token'){
     const t=tokenById(drag.tokenId); if(!t) return;
     drag.moved=true;
-    if(t.kind==='ball' && t.attachedTo) t.attachedTo=null;
-    t.x=p.x+drag.dx; t.y=p.y+drag.dy;
-    const el=gTokens.querySelector('.tk[data-id="'+t.id+'"]');
-    if(el) el.setAttribute('transform',`translate(${t.x.toFixed(3)},${t.y.toFixed(3)})`);
+    drag.cur={ x:p.x+drag.dx, y:p.y+drag.dy };
+    setLivePosById(t.id, drag.cur.x, drag.cur.y);
     if(t.kind!=='ball'){
       const b=ballToken();
-      if(b && b.attachedTo===t.id){
-        const bp=tokenPos(b);
-        const be=gTokens.querySelector('.tk[data-id="'+b.id+'"]');
-        if(be) be.setAttribute('transform',`translate(${bp.x.toFixed(3)},${bp.y.toFixed(3)})`);
-      }
+      if(b && ballCarrierAt(curStep)===t.id)
+        setLivePosById(b.id, drag.cur.x+BALL_OFF.x*tScale(), drag.cur.y+BALL_OFF.y*tScale());
     }
   } else if(drag.kind==='draw'){
     const last=drag.raw[drag.raw.length-1];
@@ -1084,6 +1184,9 @@ courtEl.addEventListener('pointermove', e=>{
       drag.raw.push([clamp(p.x,-0.3,C.W+0.3), clamp(p.y,-(C.goalD+0.3),C.yCenter+0.3)]);
       drawLive(drag.raw);
     }
+    // markören följer med banan medan man ritar
+    setLivePosById(drag.liveId, p.x, p.y);
+    if(drag.followId) setLivePosById(drag.followId, p.x+BALL_OFF.x*tScale(), p.y+BALL_OFF.y*tScale());
   }
   e.preventDefault();
 }, {passive:false});
@@ -1094,25 +1197,26 @@ function endDrag(e){
   gLive.innerHTML='';
   if(d.kind==='token'){
     const t=tokenById(d.tokenId);
-    if(!t) return;
+    if(!t){ renderAll(); return; }
     if(!d.moved){ return; }               // ren tryckning = markera bara
-    if(!overCourtEl(e) || !insideCourt(t.x,t.y)){
+    if(!overCourtEl(e) || !insideCourt(d.cur.x, d.cur.y)){
       snapshot(); removeToken(t.id); renderAll(); persist();
       toast('Bricka borttagen');
       return;
     }
     snapshot();
-    t.x=clamp(t.x,0.2,C.W-0.2); t.y=clamp(t.y,-(C.goalD-0.2),C.yCenter-0.2);
-    if(t.kind==='ball') maybeAttachBall(t);
+    const nx=clamp(d.cur.x,0.2,C.W-0.2), ny=clamp(d.cur.y,-(C.goalD-0.2),C.yCenter-0.2);
+    moveTokenTo(t, nx, ny, curStep);
+    if(t.kind==='ball' && !lastPassBefore(draft,curStep)) maybeAttachBall(t);
     renderAll(); persist();
   } else if(d.kind==='draw'){
     const raw=d.raw;
     if(pathLength(raw)<0.7){ renderAll(); return; }
     snapshot();
-    draft.paths=draft.paths.filter(p=>!(p.tokenId===d.tokenId && p.phase===phase && p.type===pathType));
-    draft.paths.push({ id:uid(), tokenId:d.tokenId, phase, type:pathType, pts:decimate(raw) });
+    draft.paths=draft.paths.filter(p=>!(p.tokenId===d.tokenId && p.step===curStep && p.type===pathType));
+    draft.paths.push({ id:uid(), tokenId:d.tokenId, step:curStep, type:pathType, pts:decimate(raw) });
     renderAll(); persist();
-    toast(PTYPE_LABEL[pathType]+' sparad i fas '+phase);
+    toast(PTYPE_LABEL[pathType]+' sparad i steg '+curStep);
   }
 }
 courtEl.addEventListener('pointerup', endDrag);
@@ -1174,19 +1278,12 @@ function selectPath(id){
   const t=tokenById(p.tokenId);
   const who = t ? (t.kind==='def' ? ('försvarare '+(t.label||'')).trim() : (t.label||'anfallare')) : 'bricka';
   document.getElementById('pathBarTxt').innerHTML=
-    `<b>${PTYPE_LABEL[p.type]}</b> för ${esc(who)} · fas ${p.phase}`;
-  [1,2,3].forEach(n=>{
-    document.getElementById('pathPhase'+n).classList.toggle('on', p.phase===n);
-  });
+    `<b>${PTYPE_LABEL[p.type]}</b> för ${esc(who)} · steg ${p.step}`;
+  document.querySelectorAll('[data-pathstep]').forEach(b=>
+    b.classList.toggle('on', +b.dataset.pathstep===p.step));
   bar.classList.remove('hidden');
   renderPaths();
 }
-[1,2,3].forEach(n=>{
-  document.getElementById('pathPhase'+n).onclick=()=>{
-    const p=draft.paths.find(q=>q.id===selectedPath); if(!p) return;
-    snapshot(); p.phase=n; renderAll(); persist(); selectPath(p.id);
-  };
-});
 document.getElementById('pathDelete').onclick=()=>{
   const p=draft.paths.find(q=>q.id===selectedPath); if(!p) return;
   snapshot();
@@ -1197,7 +1294,7 @@ document.getElementById('pathRedraw').onclick=()=>{
   const p=draft.paths.find(q=>q.id===selectedPath); if(!p) return;
   snapshot();
   draft.paths=draft.paths.filter(q=>q.id!==p.id);
-  setMode('path'); setPathType(p.type); setPhase(p.phase);
+  setMode('path'); setPathType(p.type); setStep(p.step);
   selectedToken=p.tokenId;
   selectPath(null); renderAll(); persist();
   toast('Dra en ny bana från brickan');
@@ -1213,13 +1310,35 @@ function setPathType(t){
   pathType=t;
   document.querySelectorAll('[data-ptype]').forEach(b=>b.classList.toggle('on', b.dataset.ptype===t));
 }
-function setPhase(n){
-  phase=n;
-  document.querySelectorAll('[data-phase]').forEach(b=>b.classList.toggle('on', +b.dataset.phase===n));
+function setStep(n){
+  curStep=clamp(Math.round(n),1,MAX_STEPS);
+  document.querySelectorAll('[data-step]').forEach(b=>
+    b.classList.toggle('on', +b.dataset.step===curStep));
+  renderAll();                     // planen visar lägena i det valda steget
+}
+function buildStepButtons(){
+  const g=document.getElementById('stepBtns');
+  g.innerHTML='';
+  for(let i=1;i<=MAX_STEPS;i++){
+    const b=document.createElement('button');
+    b.className='tbtn'+(i===1?' on':''); b.dataset.step=i; b.textContent=i;
+    b.onclick=()=>setStep(i);
+    g.appendChild(b);
+  }
+  const pg=document.getElementById('pathStepBtns');
+  pg.innerHTML='';
+  for(let i=1;i<=MAX_STEPS;i++){
+    const b=document.createElement('button');
+    b.className='tbtn'; b.dataset.pathstep=i; b.textContent=i;
+    b.onclick=()=>{
+      const p=draft.paths.find(q=>q.id===selectedPath); if(!p) return;
+      snapshot(); p.step=i; renderAll(); persist(); selectPath(p.id);
+    };
+    pg.appendChild(b);
+  }
 }
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
 document.querySelectorAll('[data-ptype]').forEach(b=>b.onclick=()=>{ setPathType(b.dataset.ptype); setMode('path'); });
-document.querySelectorAll('[data-phase]').forEach(b=>b.onclick=()=>setPhase(+b.dataset.phase));
 document.getElementById('defSelect').onchange=e=>applyFormation(e.target.value);
 document.getElementById('undoBtn').onclick=undo;
 document.getElementById('clearBtn').onclick=()=>{
@@ -1245,17 +1364,21 @@ function speedFactor(){ return root.settings.speed==='slow' ? 2.1 : 1; }
 function durFor(len){ return clamp(520 + len*135, 700, 2600) * speedFactor(); }
 function easeInOut(t){ return t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; }
 
-function setLivePos(t,x,y){
-  const el=gTokens.querySelector('.tk[data-id="'+t.id+'"]');
-  if(el) el.setAttribute('transform',`translate(${x.toFixed(3)},${y.toFixed(3)})`);
+function setLivePos(t,x,y){ setLivePosById(t.id,x,y); }
+function usedSteps(){
+  const out=[];
+  for(let i=1;i<=MAX_STEPS;i++) if(draft.paths.some(q=>q.step===i)) out.push(i);
+  return out;
 }
-function usedPhases(){
-  return [1,2,3].filter(p=>draft.paths.some(q=>q.phase===p));
+/* Ställ alla brickor på sina lägen i ett givet steg */
+function applyStepPositions(step){
+  draft.tokens.forEach(t=>{ const q=tokenPosAt(draft,t,step); setLivePos(t,q.x,q.y); });
 }
-function playPhase(ph){
+function playStep(st){
   return new Promise(resolve=>{
     const items=[];
-    draft.paths.filter(p=>p.phase===ph).forEach(p=>{
+    const carrier=ballCarrierAt(st);
+    draft.paths.filter(p=>p.step===st).forEach(p=>{
       const owner=tokenById(p.tokenId), cl=centerlines[p.id];
       if(!owner||!cl) return;
       const len=cl.getTotalLength();
@@ -1263,7 +1386,7 @@ function playPhase(ph){
       let mover=owner;
       if(p.type==='pass'){ const b=ballToken(); if(b) mover=b; }
       const followers = mover.kind==='ball' ? [] :
-        draft.tokens.filter(t=>t.kind==='ball' && t.attachedTo===mover.id);
+        (carrier===mover.id ? draft.tokens.filter(t=>t.kind==='ball') : []);
       items.push({ cl, len, mover, followers, dur:durFor(len) });
     });
     if(!items.length){ resolve(); return; }
@@ -1289,15 +1412,16 @@ function playPhase(ph){
     anim.raf=requestAnimationFrame(frame);
   });
 }
-async function play(phases){
+async function play(steps){
   if(anim.running){ stopPlay(); return; }
-  const list=phases||usedPhases();
+  const list=steps||usedSteps();
   if(!list.length){ toast('Rita en bana först — dra från en bricka i läget Bana'); return; }
   selectPath(null);
   anim.running=true; setPlayUI(true);
+  applyStepPositions(list[0]);
   for(let i=0;i<list.length;i++){
     if(!anim.running) break;
-    await playPhase(list[i]);
+    await playStep(list[i]);
     if(!anim.running) break;
     if(i<list.length-1) await sleep(280);
   }
@@ -1310,6 +1434,7 @@ function stopPlay(){
 }
 function resetPlay(){
   stopPlay();
+  if(presentMode){ setStep(1); document.querySelectorAll('#prSteps button').forEach(b=>b.classList.remove('on')); }
   renderTokens();
 }
 function setPlayUI(on){
@@ -1318,7 +1443,7 @@ function setPlayUI(on){
   b.innerHTML=(on?SVG.stop+' Stopp':SVG.play+' Play');
   const pb=document.getElementById('prPlay');
   pb.innerHTML=(on?SVG.stop+' Stopp':SVG.play+' Play');
-  if(!on) document.querySelectorAll('#prPhases button').forEach(x=>x.classList.remove('on'));
+  if(!on) document.querySelectorAll('#prSteps button').forEach(x=>x.classList.remove('on'));
 }
 document.getElementById('playBtn').onclick=()=>play();
 document.getElementById('resetBtn').onclick=resetPlay;
@@ -1331,11 +1456,7 @@ function setPresent(on){
     showView('vDraw');
     document.getElementById('prName').textContent = draft.name || 'Nytt mönster';
     document.getElementById('prNote').textContent = draft.note || '';
-    const used=usedPhases();
-    document.querySelectorAll('#prPhases button').forEach(b=>{
-      b.disabled = used.indexOf(+b.dataset.prphase)<0;
-      b.classList.remove('on');
-    });
+    buildPresentSteps();
   }
   stopPlay();
   renderAll();
@@ -1345,13 +1466,18 @@ document.getElementById('navPresent').onclick=()=>setPresent(true);
 document.getElementById('prExit').onclick=()=>setPresent(false);
 document.getElementById('prPlay').onclick=()=>play();
 document.getElementById('prReset').onclick=resetPlay;
-document.querySelectorAll('#prPhases button').forEach(b=>{
-  b.onclick=()=>{
-    const n=+b.dataset.prphase;
-    document.querySelectorAll('#prPhases button').forEach(x=>x.classList.toggle('on', x===b));
-    play([n]);
-  };
-});
+function buildPresentSteps(){
+  const host=document.getElementById('prSteps');
+  const used=usedSteps();
+  host.innerHTML=used.map(n=>`<button data-prstep="${n}">Steg ${n}</button>`).join('');
+  host.querySelectorAll('button').forEach(b=>{
+    b.onclick=()=>{
+      const n=+b.dataset.prstep;
+      host.querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b));
+      setStep(n); play([n]);
+    };
+  });
+}
 document.addEventListener('keydown', e=>{
   if(e.key==='Escape'){ if(presentMode) setPresent(false); else closeModal(); }
   if(e.key===' ' && presentMode){ e.preventDefault(); play(); }
@@ -1462,7 +1588,7 @@ function renderBank(){
       : 'Banken är tom. Rita ett mönster och tryck Spara.'}</div>`;
   } else {
     grid.innerHTML=list.map(p=>{
-      const nPaths=p.paths.length, nPh=new Set(p.paths.map(x=>x.phase)).size;
+      const nPaths=p.paths.length, nSteps=new Set(p.paths.map(x=>x.step)).size;
       return `<div class="card pcard">
         <div class="pthumb" data-open="${p.id}">${thumbSVG(p)}</div>
         <div class="pcard-body">
@@ -1470,7 +1596,7 @@ function renderBank(){
           <div class="pcard-meta">
             <span class="pill good">${esc(p.category)}</span>
             <span class="tagchip">${esc(DEF_LABEL[p.defense]||p.defense)}</span>
-            <span class="tagchip">${nPaths} ${nPaths===1?'bana':'banor'}${nPh>1?' · '+nPh+' faser':''}</span>
+            <span class="tagchip">${nPaths} ${nPaths===1?'bana':'banor'}${nSteps>1?' · '+nSteps+' steg':''}</span>
           </div>
           <div class="meta">${esc(fmtDate(p.updated||p.created))}</div>
           ${p.note?`<div class="pcard-note">${esc(p.note)}</div>`:''}
@@ -1689,6 +1815,7 @@ function applySettingsToUI(){
 async function boot(){
   paintIcons();
   buildStencil();
+  buildStepButtons();
   renderCourt();
   fillSelect(document.getElementById('bankCat'), CATS);
   fillSelect(document.getElementById('bankDef'), DEFS, DEF_LABEL);
@@ -1702,7 +1829,7 @@ async function boot(){
     placeFormation(draft.defense);
   }
   applySettingsToUI();
-  setMode('move'); setPathType('run'); setPhase(1);
+  setMode('move'); setPathType('run'); setStep(1);
   syncUndoBtn();
   renderAll(); renderBank();
   setPlayUI(false);

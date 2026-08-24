@@ -21,7 +21,11 @@ keyframes, inga rörelsemallar. Mallar används bara för försvarsuppställning
   anfaller uppåt. Brickor dras ut ur sidopanelen: anfallare märkta med position (VK, V9, M9, H9, HK,
   M6, MV) eller nummer, försvarare numrerade efter roll (1 ytter · 2 halv · 3 mitt · MV målvakt), boll.
   Ett tryck ställer ut 6-0, 5-1, 3-2-1 eller 3-3 med målvakt — varje bricka är flyttbar efteråt.
-  Linjespråk: heldragen = löpväg, streckad = passning, sicksack = dribbling. Banor läggs i fas 1–3.
+  Linjespråk: heldragen = löpväg, streckad = passning, sicksack = dribbling. Brickan följer med fingret
+  medan du ritar.
+- **Steg** — ett mönster har upp till sex steg, och varje steg börjar där det förra slutade. Väljer du
+  steg 3 visar planen var alla står efter steg 2, och där ritar du vidare. En passning lämnar bollen hos
+  den som står vid passningens slutpunkt, så nästa steg börjar hos mottagaren. Play spelar stegen i ordning.
 - **Bank** — sparade mönster som kort med miniatyr renderad ur vektordatan. Sök på namn, filtrera på
   kategori och försvarsuppställning, duplicera för varianter, papperskorg i stället för hård radering.
 - **Inställningar** — export/import av hela banken (ersätt allt eller slå ihop), förvalt försvar,
