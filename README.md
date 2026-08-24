@@ -17,9 +17,10 @@ Rita fritt — men varje draget streck är en spelbar bana. Placera brickor, dra
 fingret och tryck play: alla brickor glider längs sina banor, fas för fas. Inga tidslinjer, inga
 keyframes, inga rörelsemallar. Mallar används bara för försvarsuppställningar (startpositioner).
 
-- **Rita** — halvplan med korrekt handbollsgeometri (6m, 9m, 7m, 4m, målbur). Brickor dras ut ur
-  sidopanelen: anfallare märkta med position (VK, V9, M9, H9, HK, M6, MV) eller nummer, försvarare,
-  boll. Ett tryck ställer ut 6-0, 5-1, 3-2-1 eller 3-3 — varje försvarare är flyttbar efteråt.
+- **Rita** — halvplan med korrekt handbollsgeometri (6m, 9m, 7m, 4m, målbur), målburen uppåt så laget
+  anfaller uppåt. Brickor dras ut ur sidopanelen: anfallare märkta med position (VK, V9, M9, H9, HK,
+  M6, MV) eller nummer, försvarare numrerade efter roll (1 ytter · 2 halv · 3 mitt · MV målvakt), boll.
+  Ett tryck ställer ut 6-0, 5-1, 3-2-1 eller 3-3 med målvakt — varje bricka är flyttbar efteråt.
   Linjespråk: heldragen = löpväg, streckad = passning, sicksack = dribbling. Banor läggs i fas 1–3.
 - **Bank** — sparade mönster som kort med miniatyr renderad ur vektordatan. Sök på namn, filtrera på
   kategori och försvarsuppställning, duplicera för varianter, papperskorg i stället för hård radering.
@@ -29,6 +30,17 @@ keyframes, inga rörelsemallar. Mallar används bara för försvarsuppställning
   vända plattan mot laget i en timeout.
 
 Ett spelmönster är 2–3 kB. 500 mönster ≈ 1 MB — ingen lagringsrisk.
+
+## Avvikelser från spec v0.1
+
+- **Planen är roterad** så att målburen ligger uppåt och laget anfaller uppåt (specen sa inget om
+  riktning; detta är valt).
+- **Försvarare är cirklar** som anfallarna, skilda genom grå färg och rollnummer, och uppställningarna
+  inkluderar försvarets målvakt. Specen föreslog en annan form för försvarare.
+- **Hjälpen ligger under Inställningar** i stället för som ett fjärde menyval — specens meny har tre
+  poster.
+- **Vyn klipps till det som används** i visningsläget och i miniatyrerna, så en tom planhalva inte
+  äter skärm. Ritytan visar hela halvplanen och datamodellen är oförändrad.
 
 ## Integritet
 

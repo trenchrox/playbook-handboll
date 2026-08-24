@@ -274,7 +274,7 @@
     display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
     transform: translate(-50%,-50%); }
   .dragghost.att { background: var(--save); color: var(--on-save); border-radius: 50%; }
-  .dragghost.def { background: var(--def); color: var(--on-def); }
+  .dragghost.def { background: var(--def); color: var(--on-def); border-radius: 50%; }
   .dragghost.ball { background: var(--accent); border-radius: 50%; width: 22px; height: 22px; }
 
   /* ---------- Visningsläge ---------- */
@@ -523,10 +523,12 @@
     <summary><span class="help-ic" data-svg="pen"></span><span>Rita ett spelmönster</span></summary>
     <div class="help-body">
       <ul>
+        <li>Planen ligger med målburen uppåt: <b>laget anfaller uppåt</b>.</li>
         <li>Dra ut brickor ur sidopanelen: <b>anfallare</b> (grönt, märkta med position), <b>försvarare</b>
-          (grått) och <b>bollen</b> (gul). Dra en bricka av planen för att ta bort den.</li>
-        <li>Välj en <b>försvarsuppställning</b> i verktygsraden — sex försvarare ställs ut på en gång, och
-          varje försvarare är fritt flyttbar efteråt.</li>
+          (grått, numrerade 1 ytter · 2 halv · 3 mitt · MV målvakt) och <b>bollen</b> (gul). Dra en bricka
+          av planen för att ta bort den.</li>
+        <li>Välj en <b>försvarsuppställning</b> i verktygsraden — sex försvarare plus målvakt ställs ut på
+          en gång, och varje bricka är fritt flyttbar efteråt.</li>
         <li>Byt till läget <b>Bana</b> och dra med fingret från en bricka: linjen du drar blir brickans väg.
           Heldragen = löpväg, streckad = passning, sicksack = dribbling.</li>
         <li>Tryck <b>Play</b> — alla brickor glider samtidigt längs sina banor, fas för fas.</li>
@@ -662,12 +664,18 @@ const DEFS=['none','6-0','5-1','3-2-1','3-3'];
 const DEF_LABEL={none:'Inget försvar','6-0':'6-0','5-1':'5-1','3-2-1':'3-2-1','3-3':'3-3'};
 const PTYPE_LABEL={run:'Löpväg',pass:'Passning',dribble:'Dribbling'};
 const ATT_POS=['VK','V9','M9','H9','HK','M6','MV'];
+const DEF_POS=['1','2','3','MV'];   // ytter · halv · mitt · målvakt
 
 function freshRoot(){
-  return { v:1, patterns:[], trash:[], settings:{ def:'6-0', speed:'normal', theme:'dark' }, draft:null };
+  return { v:2, patterns:[], trash:[], settings:{ def:'6-0', speed:'normal', theme:'dark' }, draft:null };
 }
 function freshDraft(){
   return { id:null, name:'', category:CATS[0], defense:'none', note:'', tokens:[], paths:[], created:null, updated:null };
+}
+/* Mönster sparade före rotationen (mållinjen nedåt) speglas en gång. */
+function flipPatternY(p){
+  p.tokens.forEach(t=>{ t.y = +(C.yCenter - t.y).toFixed(2); });
+  p.paths.forEach(q=>{ q.pts = q.pts.map(pt=>[pt[0], +(C.yCenter - pt[1]).toFixed(2)]); });
 }
 function normalizeRoot(d){
   const r=freshRoot();
@@ -680,6 +688,11 @@ function normalizeRoot(d){
     if(d.settings.theme==='light'||d.settings.theme==='dark') r.settings.theme=d.settings.theme;
   }
   if(d.draft) r.draft=normalizePattern(d.draft, true);
+  if((Number(d.v)||1) < 2){
+    r.patterns.forEach(flipPatternY);
+    r.trash.forEach(flipPatternY);
+    if(r.draft) flipPatternY(r.draft);
+  }
   return r;
 }
 function normalizePattern(p, keepEmpty){
@@ -731,19 +744,20 @@ function persist(){
   }, 260);
 }
 
-/* ---------- Plangeometri (meter) ---------- */
-const C={ W:20, H:20, postL:8.5, postR:11.5, yGoal:20, y6:14, y9:11, y7:13, y4:16, goalD:1 };
-// 9m-linjen skärs av sidlinjerna: (0-8.5)^2 + (y-20)^2 = 81  →  y = 20 - sqrt(81-72.25)
-const Y9_EDGE = +(C.yGoal - Math.sqrt(81 - Math.pow(C.postL,2))).toFixed(3);
+/* ---------- Plangeometri (meter) ----------
+   Mållinjen ligger högst upp och mittlinjen längst ner: laget anfaller uppåt. */
+const C={ W:20, H:20, postL:8.5, postR:11.5, yGoal:0, y4:4, y6:6, y7:7, y9:9, yCenter:20, goalD:1 };
+// 9m-linjen skärs av sidlinjerna: (0-8.5)^2 + y^2 = 81  →  y = sqrt(81-72.25)
+const Y9_EDGE = +Math.sqrt(81 - Math.pow(C.postL,2)).toFixed(3);
 
 function courtMarkup(opts){
   const o=opts||{};
   const parts=[
     `<rect x="0" y="0" width="${C.W}" height="${C.H}" class="cline"/>`,
-    `<rect x="${C.postL}" y="${C.yGoal}" width="3" height="${C.goalD}" class="goalbox"/>`,
-    `<path d="M${C.postL},${C.yGoal} L${C.postR},${C.yGoal}" class="cline thick"/>`,
-    `<path d="M2.5,${C.yGoal} A6,6 0 0 1 ${C.postL},${C.y6} L${C.postR},${C.y6} A6,6 0 0 1 17.5,${C.yGoal}" class="cline"/>`,
-    `<path d="M0,${Y9_EDGE} A9,9 0 0 1 ${C.postL},${C.y9} L${C.postR},${C.y9} A9,9 0 0 1 ${C.W},${Y9_EDGE}" class="cline dash"/>`
+    `<rect x="${C.postL}" y="${-C.goalD}" width="3" height="${C.goalD}" class="goalbox"/>`,
+    `<path d="M${C.postL},0 L${C.postR},0" class="cline thick"/>`,
+    `<path d="M2.5,0 A6,6 0 0 0 ${C.postL},${C.y6} L${C.postR},${C.y6} A6,6 0 0 0 17.5,0" class="cline"/>`,
+    `<path d="M0,${Y9_EDGE} A9,9 0 0 0 ${C.postL},${C.y9} L${C.postR},${C.y9} A9,9 0 0 0 ${C.W},${Y9_EDGE}" class="cline dash"/>`
   ];
   if(!o.mini){
     parts.push(`<path d="M9.5,${C.y7} L10.5,${C.y7}" class="cline"/>`);
@@ -752,18 +766,20 @@ function courtMarkup(opts){
   return parts.join('');
 }
 
-/* Försvarsuppställningar — sex koordinatpar, alla utanför 6m-linjen */
+/* Försvarsuppställningar — sex utespelare utanför 6m-linjen plus målvakt.
+   Nummer: 3 = mittförsvarare, 2 = halvförsvarare, 1 = ytterförsvarare, MV = målvakt. */
+const DEF_GK=[10,1.3];
 const FORMATIONS={
   'none': null,
-  '6-0':   [[3.3,16.3],[6.0,14.1],[9.0,13.4],[11.0,13.4],[14.0,14.1],[16.7,16.3]],
-  '5-1':   [[3.3,16.3],[6.3,14.0],[10.0,13.4],[13.7,14.0],[16.7,16.3],[10.0,10.8]],
-  '3-2-1': [[6.4,14.2],[10.0,13.4],[13.6,14.2],[7.4,11.9],[12.6,11.9],[10.0,10.5]],
-  '3-3':   [[6.4,14.2],[10.0,13.4],[13.6,14.2],[6.2,11.2],[10.0,10.9],[13.8,11.2]]
+  '6-0':   [[3.3,3.7,'1'],[6.0,5.9,'2'],[9.0,6.6,'3'],[11.0,6.6,'3'],[14.0,5.9,'2'],[16.7,3.7,'1']],
+  '5-1':   [[3.3,3.7,'1'],[6.3,6.0,'2'],[10.0,6.6,'3'],[13.7,6.0,'2'],[16.7,3.7,'1'],[10.0,9.2,'3']],
+  '3-2-1': [[6.4,5.8,'1'],[10.0,6.6,'3'],[13.6,5.8,'1'],[7.4,8.1,'2'],[12.6,8.1,'2'],[10.0,9.5,'3']],
+  '3-3':   [[4.45,4.83,'1'],[10.0,6.6,'3'],[15.55,4.83,'1'],[6.6,8.8,'2'],[10.0,9.1,'3'],[13.4,8.8,'2']]
 };
 
 /* ---------- Brickor: mått ---------- */
-const R_ATT=0.62, S_DEF=1.16, R_BALL=0.26;
-const BALL_OFF={x:0.78,y:-0.6};
+const R_ATT=0.62, R_DEF=0.62, R_BALL=0.26;
+const BALL_OFF={x:0.78,y:0.6};
 let presentMode=false;
 function tScale(){ return presentMode ? 1.32 : 1; }
 
@@ -786,16 +802,16 @@ function renderCourt(){ gCourt.innerHTML=courtMarkup(); }
 
 /* Vyn klipps till det som används — halvplanen är fortfarande spelytan,
    men i visningsläget och i miniatyrerna slösas ingen skärm på tom plan. */
-function contentTop(p){
-  let minY=C.y9-1.2;
-  p.tokens.forEach(t=>{ minY=Math.min(minY, t.y-1.1); });
-  p.paths.forEach(q=>q.pts.forEach(pt=>{ minY=Math.min(minY, pt[1]-0.8); }));
-  return clamp(minY, -0.7, C.y9-1.2);
+function contentBottom(p){
+  let maxY=C.y9+1.2;
+  p.tokens.forEach(t=>{ maxY=Math.max(maxY, t.y+1.1); });
+  p.paths.forEach(q=>q.pts.forEach(pt=>{ maxY=Math.max(maxY, pt[1]+0.8); }));
+  return clamp(maxY, C.y9+1.2, C.yCenter+0.7);
 }
 function viewBoxFor(p, fit){
-  const y0 = fit ? contentTop(p) : -0.7;
-  const h = (C.yGoal+C.goalD+0.7) - y0;
-  return `-0.7 ${y0.toFixed(2)} 21.4 ${h.toFixed(2)}`;
+  const y0 = -(C.goalD+0.7);
+  const y1 = fit ? contentBottom(p) : C.yCenter+0.7;
+  return `-0.7 ${y0.toFixed(2)} 21.4 ${(y1-y0).toFixed(2)}`;
 }
 function applyViewBox(){ courtEl.setAttribute('viewBox', viewBoxFor(draft, presentMode)); }
 
@@ -820,9 +836,9 @@ function renderTokens(){
       shape=`<circle class="tk-shape" r="${(R_ATT*s).toFixed(3)}" fill="var(--save)"/>`;
       lbl=`<text class="tk-lbl att" font-size="${(0.52*s).toFixed(3)}">${esc(t.label)}</text>`;
     } else if(t.kind==='def'){
-      const h=S_DEF*s;
-      shape=`<rect class="tk-shape" x="${(-h/2).toFixed(3)}" y="${(-h/2).toFixed(3)}" width="${h.toFixed(3)}" height="${h.toFixed(3)}" fill="var(--def)"/>`;
-      lbl=t.label?`<text class="tk-lbl def" font-size="${(0.5*s).toFixed(3)}">${esc(t.label)}</text>`:'';
+      shape=`<circle class="tk-shape" r="${(R_DEF*s).toFixed(3)}" fill="var(--def)"/>`;
+      const fs = t.label && t.label.length>1 ? 0.42 : 0.52;
+      lbl=t.label?`<text class="tk-lbl def" font-size="${(fs*s).toFixed(3)}">${esc(t.label)}</text>`:'';
     } else {
       shape=`<circle class="tk-shape" r="${(R_BALL*s).toFixed(3)}" fill="var(--accent)"/>`;
     }
@@ -933,7 +949,7 @@ function ptFromEvent(e){
   const q=p.matrixTransform(m.inverse());
   return {x:q.x, y:q.y};
 }
-function insideCourt(x,y){ return x>=-0.4 && x<=C.W+0.4 && y>=-0.4 && y<=C.yGoal+C.goalD+0.3; }
+function insideCourt(x,y){ return x>=-0.4 && x<=C.W+0.4 && y>=-(C.goalD+0.4) && y<=C.yCenter+0.4; }
 function overCourtEl(e){
   const r=courtEl.getBoundingClientRect();
   return e.clientX>=r.left && e.clientX<=r.right && e.clientY>=r.top && e.clientY<=r.bottom;
@@ -941,7 +957,7 @@ function overCourtEl(e){
 
 /* ---------- Lägg till brickor ---------- */
 function addToken(kind,label,x,y){
-  const t={ id:uid(), kind, label:label||'', x:clamp(x,0.3,C.W-0.3), y:clamp(y,0.3,C.yGoal-0.2), attachedTo:null };
+  const t={ id:uid(), kind, label:label||'', x:clamp(x,0.3,C.W-0.3), y:clamp(y,-0.7,C.yCenter-0.3), attachedTo:null };
   draft.tokens.push(t);
   return t;
 }
@@ -951,6 +967,12 @@ function nextAttNumber(){
   while(used.has(String(n))) n++;
   return String(n);
 }
+function placeFormation(key){
+  const pts=FORMATIONS[key];
+  if(!pts) return;
+  pts.forEach(([x,y,lbl])=>addToken('def',lbl,x,y));
+  addToken('def','MV',DEF_GK[0],DEF_GK[1]);
+}
 function applyFormation(key){
   const pts=FORMATIONS[key];
   snapshot();
@@ -959,7 +981,7 @@ function applyFormation(key){
   draft.tokens=draft.tokens.filter(t=>t.kind!=='def');
   draft.paths=draft.paths.filter(p=>gone.indexOf(p.tokenId)<0);
   draft.tokens.forEach(t=>{ if(t.attachedTo && gone.indexOf(t.attachedTo)>=0) t.attachedTo=null; });
-  if(pts) pts.forEach(([x,y])=>addToken('def','',x,y));
+  placeFormation(key);
   draft.defense=key;
   renderAll(); persist();
   toast(pts? 'Uppställning '+key+' utställd — flytta fritt' : 'Försvaret borttaget');
@@ -1059,7 +1081,7 @@ courtEl.addEventListener('pointermove', e=>{
   } else if(drag.kind==='draw'){
     const last=drag.raw[drag.raw.length-1];
     if(Math.hypot(p.x-last[0], p.y-last[1])>0.1){
-      drag.raw.push([clamp(p.x,-0.3,C.W+0.3), clamp(p.y,-0.3,C.yGoal+0.3)]);
+      drag.raw.push([clamp(p.x,-0.3,C.W+0.3), clamp(p.y,-(C.goalD+0.3),C.yCenter+0.3)]);
       drawLive(drag.raw);
     }
   }
@@ -1080,7 +1102,7 @@ function endDrag(e){
       return;
     }
     snapshot();
-    t.x=clamp(t.x,0.2,C.W-0.2); t.y=clamp(t.y,0.2,C.yGoal+C.goalD-0.2);
+    t.x=clamp(t.x,0.2,C.W-0.2); t.y=clamp(t.y,-(C.goalD-0.2),C.yCenter-0.2);
     if(t.kind==='ball') maybeAttachBall(t);
     renderAll(); persist();
   } else if(d.kind==='draw'){
@@ -1150,7 +1172,7 @@ function selectPath(id){
   const p=draft.paths.find(q=>q.id===id);
   if(!p){ bar.classList.add('hidden'); return; }
   const t=tokenById(p.tokenId);
-  const who = t ? (t.kind==='def'?'försvarare':(t.label||'anfallare')) : 'bricka';
+  const who = t ? (t.kind==='def' ? ('försvarare '+(t.label||'')).trim() : (t.label||'anfallare')) : 'bricka';
   document.getElementById('pathBarTxt').innerHTML=
     `<b>${PTYPE_LABEL[p.type]}</b> för ${esc(who)} · fas ${p.phase}`;
   [1,2,3].forEach(n=>{
@@ -1403,7 +1425,7 @@ function thumbSVG(p){
       if(o) pos={x:o.x+BALL_OFF.x,y:o.y+BALL_OFF.y};
     }
     if(t.kind==='att') return `<circle cx="${pos.x}" cy="${pos.y}" r="0.75" fill="var(--save)"/>`;
-    if(t.kind==='def') return `<rect x="${pos.x-0.68}" y="${pos.y-0.68}" width="1.36" height="1.36" fill="var(--def)"/>`;
+    if(t.kind==='def') return `<circle cx="${pos.x}" cy="${pos.y}" r="0.75" fill="var(--def)"/>`;
     return `<circle cx="${pos.x}" cy="${pos.y}" r="0.34" fill="var(--accent)"/>`;
   }).join('');
   const paths=p.paths.map(q=>{
@@ -1484,7 +1506,7 @@ document.getElementById('bankNew').onclick=()=>{
   document.getElementById('defSelect').value=root.settings.def;
   undoStack.length=0; syncUndoBtn();
   selectedToken=null; selectPath(null);
-  if(FORMATIONS[draft.defense]) FORMATIONS[draft.defense].forEach(([x,y])=>addToken('def','',x,y));
+  placeFormation(draft.defense);
   showView('vDraw'); renderAll(); persist();
 };
 
@@ -1550,7 +1572,7 @@ function renderTrash(){
 /* ---------- Export / import ---------- */
 function exportBank(){
   if(!root.patterns.length){ toast('Banken är tom'); return; }
-  const data={ app:'handboll-playbook', version:1, exported:new Date().toISOString(),
+  const data={ app:'handboll-playbook', version:2, exported:new Date().toISOString(),
     patterns:root.patterns };
   const blob=new Blob([JSON.stringify(data,null,1)],{type:'application/json'});
   const a=document.createElement('a');
@@ -1569,6 +1591,7 @@ function importBank(file){
     if(!Array.isArray(incoming)){ toast('Ingen bank i filen'); return; }
     const list=incoming.map(p=>normalizePattern(p)).filter(Boolean);
     if(!list.length){ toast('Inga mönster i filen'); return; }
+    if((Number(data && data.version)||1) < 2) list.forEach(flipPatternY);
     const m=openModal(`<h3>Importera ${list.length} mönster</h3>
       <p class="mtxt">Ersätt allt tar bort banken du har nu. Slå ihop lägger till de importerade
       mönstren vid sidan av dina egna.</p>
@@ -1652,7 +1675,7 @@ function buildStencil(){
     ATT_POS.map(p=>`<div class="chip att" data-new="att" data-label="${p}">${p}</div>`).join('')
     +`<div class="chip att" data-new="attnum" data-label="">Nr</div>`;
   document.getElementById('stDef').innerHTML=
-    `<div class="chip def" data-new="def" style="grid-column:1/-1">Försvarare</div>`;
+    DEF_POS.map(p=>`<div class="chip def" data-new="def" data-label="${p}">${p}</div>`).join('');
 }
 
 /* ---------- Start ---------- */
@@ -1676,7 +1699,7 @@ async function boot(){
   else {
     draft=freshDraft();
     draft.defense=root.settings.def;
-    if(FORMATIONS[draft.defense]) FORMATIONS[draft.defense].forEach(([x,y])=>addToken('def','',x,y));
+    placeFormation(draft.defense);
   }
   applySettingsToUI();
   setMode('move'); setPathType('run'); setPhase(1);
