@@ -10,6 +10,7 @@ surfplatta i liggande läge.
 | `playbook.html` | Hela appen — öppna filen, inget bygge, ingen server krävs |
 | `manifest.json`, `sw.js` | PWA: installera på hemskärmen, fungerar offline |
 | `docs/PLAYBOOK_spec_v0.1.md` | Specifikationen appen är byggd mot (original: samma namn, `.pdf`) |
+| `docs/Playbook-guide.pdf` | Guide för betatestare — 6 sidor med skärmbilder |
 
 ## Kärnidé
 
