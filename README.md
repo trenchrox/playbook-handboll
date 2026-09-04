@@ -19,7 +19,8 @@ fingret och tryck play: alla brickor glider längs sina banor, steg för steg. I
 keyframes, inga rörelsemallar. Mallar används bara för försvarsuppställningar (startpositioner).
 
 - **Rita** — halvplan med korrekt handbollsgeometri (6m, 9m, 7m, 4m, målbur), målburen uppåt så laget
-  anfaller uppåt. Brickor dras ut ur sidopanelen: anfallare märkta med position (VK, V9, M9, H9, HK,
+  anfaller uppåt. Planen fyller hela ritytan; menyn ligger undanskjuten bakom en knapp i verktygsraden
+  och fälls in igen med ett tryck på planen. Brickor dras ut ur sidopanelen: anfallare märkta med position (VK, V9, M9, H9, HK,
   M6, MV) eller nummer, försvarare numrerade 1–6 från vänster plus MV, boll. Tryck på en bricka så ställs
   den ut på sin plats, eller dra ut den dit du vill. Ett tryck ställer ut 6-0, 5-1, 3-2-1 eller 3-3 med
   målvakt — varje bricka är flyttbar efteråt. Fyra banatyper med egen färg: **Löpväg** (grön, streckad),

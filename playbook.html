@@ -350,6 +350,15 @@
   .help-body ul { margin: 8px 0 0; padding-left: 20px; }
   .help-body li { margin-bottom: 6px; }
 
+  /* I ritytan ligger menyn undanskjuten så planen får hela bredden; knappen
+     längst till vänster i verktygsraden fäller ut den över ytan. */
+  body.drawfull nav { position: fixed; left: 0; top: 0; z-index: 46;
+    transform: translateX(-100%); transition: transform .18s ease; }
+  body.drawfull.navopen nav { transform: none; }
+  body.drawfull .menubtn { display: none; }
+  #navBtn { font-size: 17px; padding: 10px 12px; }
+  body.navopen #navBtn { background: var(--panel-3); color: var(--ink); }
+
   /* Under 1300 px räcker knapparnas egna namn och färgprickar — etiketterna tar plats. */
   @media (max-width: 1300px) {
     .toolbar .tpair.opt > .tlabel { display: none; }
@@ -391,6 +400,7 @@
 <!-- ============ RITA ============ -->
 <div class="view draw on" id="vDraw">
   <div class="toolbar">
+    <button class="tbtn solo" id="navBtn" aria-label="Visa menyn"><span data-svg="menu"></span></button>
     <span class="tpair opt"><span class="tlabel">Läge</span>
       <span class="grp">
         <button class="tbtn on" data-mode="move"><span data-svg="hand"></span>Flytta</button>
@@ -617,7 +627,8 @@ const SVG = {
   save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4"/><path d="M8 14h8"/></svg>',
   copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="11" height="13"/><path d="M8 20h8a2 2 0 0 0 2-2V8"/></svg>',
   close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
-  open: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></svg>'
+  open: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></svg>',
+  menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>'
 };
 function paintIcons(root){
   (root||document).querySelectorAll('[data-svg]').forEach(el=>{
@@ -1880,6 +1891,8 @@ document.getElementById('themeToggle').onclick=()=>{
 function showView(id){
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on', v.id===id));
   document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active', b.dataset.nav===id));
+  // i ritytan ligger menyn undanskjuten, i de andra vyerna står den kvar
+  document.body.classList.toggle('drawfull', id==='vDraw');
   document.body.classList.remove('navopen');
   if(id==='vBank') renderBank();
 }
@@ -1887,9 +1900,15 @@ document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{
   if(presentMode) setPresent(false);
   showView(b.dataset.nav);
 });
-document.getElementById('menuBtn').onclick=e=>{ e.stopPropagation(); document.body.classList.toggle('navopen'); };
-document.querySelector('main').addEventListener('pointerdown', ()=>{
-  if(document.body.classList.contains('navopen')) document.body.classList.remove('navopen');
+function toggleNav(e){ if(e) e.stopPropagation(); document.body.classList.toggle('navopen'); }
+document.getElementById('menuBtn').onclick=toggleNav;
+document.getElementById('navBtn').onclick=toggleNav;
+document.querySelector('main').addEventListener('pointerdown', e=>{
+  // första trycket utanför menyn stänger den, och går inte vidare till planen
+  if(document.body.classList.contains('navopen')){
+    document.body.classList.remove('navopen');
+    e.stopPropagation(); e.preventDefault();
+  }
 }, true);
 function updateNavCtx(){
   const n=root.patterns.length;
@@ -1933,6 +1952,7 @@ async function boot(){
   }
   applySettingsToUI();
   setMode('move'); setPathType('run'); setStep(1);
+  document.body.classList.add('drawfull');   // startvyn är ritytan
   syncUndoBtn();
   renderAll(); renderBank();
   setPlayUI(false);
