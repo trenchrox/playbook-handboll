@@ -247,10 +247,10 @@
   .chip.ball { grid-column: 1/-1; color: var(--accent); border-color: rgba(255,214,10,0.35); }
   .stencil .hint { font-size: 11px; color: var(--ink-faint); line-height: 1.5; margin-top: 16px; }
 
-  .courtwrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px;
-    min-width: 0; min-height: 0; }
+  .courtwrap { flex: 1; display: flex; padding: 10px; min-width: 0; min-height: 0; }
+  /* Planen fyller hela ritytan — ingen död yta runt om. */
   svg.court { background: var(--court); border: 1px solid var(--line); box-shadow: var(--shadow);
-    max-width: 100%; max-height: 100%; touch-action: none; }
+    display: block; width: 100%; height: 100%; touch-action: none; }
   .cline { fill: none; stroke: var(--court-line); stroke-width: 0.1; }
   .cline.thick { stroke-width: 0.16; }
   .cline.dash { stroke-dasharray: 0.4 0.32; }
@@ -293,7 +293,7 @@
 
   /* ---------- Visningsläge ---------- */
   body.present nav, body.present .stencil, body.present .toolbar, body.present .pathbar { display: none; }
-  body.present .courtwrap { padding: 8px; }
+  body.present .courtwrap { padding: 0; }
   body.present svg.court { border: none; box-shadow: none; }
   .presentbar { display: none; align-items: center; gap: 12px; padding: 14px 20px; background: var(--panel);
     border-top: 1px solid var(--line); flex-shrink: 0; }
@@ -831,20 +831,42 @@ const centerlines={};       // pathId -> SVGPathElement (mätbar mittlinje)
 /* ---------- Rendering ---------- */
 function renderCourt(){ gCourt.innerHTML=courtMarkup(); }
 
-/* Vyn klipps till det som används — halvplanen är fortfarande spelytan,
-   men i visningsläget och i miniatyrerna slösas ingen skärm på tom plan. */
+/* Vyn klipps till det som används och fyller hela ritytan. Halvplanen är
+   fortfarande spelytan, men ingen skärm går åt till tom plan. */
+const VIEW_TOP = -(C.goalD+0.7);      // ovanför mållinjen: målburen får plats
+const VIEW_DEPTH = 12.5;              // hur djupt ritytan visar som standard
+const VIEW_W_MIN = C.W+0.6;           // planen med en nypa marginal
+const VIEW_W_MAX = C.W+6;             // som mest tre meter utanför varje sidlinje
+const VIEW_H_MAX = 17.5 - VIEW_TOP;   // visa aldrig den tomma bortre delen av halvplanen
 function contentBottom(p){
   let maxY=C.y9+1.2;
   p.tokens.forEach(t=>{ maxY=Math.max(maxY, t.y+1.1); });
   p.paths.forEach(q=>q.pts.forEach(pt=>{ maxY=Math.max(maxY, pt[1]+0.8); }));
   return clamp(maxY, C.y9+1.2, C.yCenter+0.7);
 }
-function viewBoxFor(p, fit){
-  const y0 = -(C.goalD+0.7);
-  const y1 = fit ? contentBottom(p) : C.yCenter+0.7;
-  return `-0.7 ${y0.toFixed(2)} 21.4 ${(y1-y0).toFixed(2)}`;
+function stageAspect(){
+  const r=courtEl.getBoundingClientRect();
+  return (r.width>2 && r.height>2) ? r.width/r.height : 0;
 }
-function applyViewBox(){ courtEl.setAttribute('viewBox', viewBoxFor(draft, presentMode)); }
+function viewBoxFor(p, fit, aspect){
+  const used=contentBottom(p);
+  let h = (fit ? used : Math.max(VIEW_DEPTH, used)) - VIEW_TOP;
+  let w = VIEW_W_MIN;
+  if(aspect){
+    w = clamp(h*aspect, VIEW_W_MIN, VIEW_W_MAX);
+    if(w/h > aspect) h = clamp(w/aspect, h, VIEW_H_MAX);   // hellre mer djup än tomma sidor
+  }
+  const x0 = C.W/2 - w/2;
+  return `${x0.toFixed(2)} ${VIEW_TOP.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`;
+}
+function applyViewBox(){
+  courtEl.setAttribute('viewBox', viewBoxFor(draft, presentMode, stageAspect()));
+}
+if(window.ResizeObserver){
+  new ResizeObserver(()=>{ if(!drag) applyViewBox(); }).observe(courtEl.parentElement);
+} else {
+  window.addEventListener('resize', ()=>applyViewBox());
+}
 
 function setLivePosById(id,x,y){
   const el=gTokens.querySelector('.tk[data-id="'+id+'"]');
@@ -1027,7 +1049,7 @@ function ptFromEvent(e){
   const q=p.matrixTransform(m.inverse());
   return {x:q.x, y:q.y};
 }
-function insideCourt(x,y){ return x>=-0.4 && x<=C.W+0.4 && y>=-(C.goalD+0.4) && y<=C.yCenter+0.4; }
+function insideCourt(x,y){ return x>=-1 && x<=C.W+1 && y>=-(C.goalD+0.6) && y<=C.yCenter+1; }
 function overCourtEl(e){
   const r=courtEl.getBoundingClientRect();
   return e.clientX>=r.left && e.clientX<=r.right && e.clientY>=r.top && e.clientY<=r.bottom;
@@ -1642,7 +1664,7 @@ function thumbSVG(p){
     const dash=q.type==='pass'?' stroke-dasharray="0.6 0.45"':'';
     return `<path d="${d}" fill="none" stroke="${col}" stroke-width="0.19" stroke-linecap="round"${dash}/>`;
   }).join('');
-  return `<svg viewBox="${viewBoxFor(p,true)}" preserveAspectRatio="xMidYMid meet">
+  return `<svg viewBox="${viewBoxFor(p,true,0)}" preserveAspectRatio="xMidYMid meet">
     <g class="thumbcourt">${courtMarkup({mini:true})}</g>${paths}${tokens}</svg>`;
 }
 
