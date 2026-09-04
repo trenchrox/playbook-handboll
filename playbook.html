@@ -209,11 +209,20 @@
     border-bottom: 1px solid var(--line); flex-shrink: 0; flex-wrap: wrap; row-gap: 8px; }
   .tpair { display: inline-flex; align-items: center; gap: 8px; }
   .toolbar .grp { display: flex; gap: 1px; background: var(--line); border: 1px solid var(--line); }
-  .tbtn { background: var(--panel-2); color: var(--ink-dim); padding: 10px 13px; font-size: 13.5px;
+  .tbtn { background: var(--panel-2); color: var(--ink-dim); padding: 10px 11px; font-size: 13px;
     font-weight: 700; transition: var(--tap); display: flex; align-items: center; gap: 6px; }
   .tbtn svg { width: 16px; height: 16px; }
   .tbtn:active { transform: scale(0.96); }
   .tbtn.on { background: var(--save); color: var(--on-save); }
+  .tbtn[data-ptype]::before { content: ''; width: 8px; height: 8px; flex-shrink: 0; }
+  .tbtn[data-ptype="run"]::before { background: var(--save); }
+  .tbtn[data-ptype="pass"]::before { background: var(--accent); }
+  .tbtn[data-ptype="dribble"]::before { background: var(--blue); }
+  .tbtn[data-ptype="shot"]::before { background: var(--goal); }
+  .tbtn[data-ptype].on::before { display: none; }
+  .tbtn[data-ptype="pass"].on { background: var(--accent); color: #1a1205; }
+  .tbtn[data-ptype="dribble"].on { background: var(--blue); color: #04121f; }
+  .tbtn[data-ptype="shot"].on { background: var(--goal); color: #2b0a13; }
   .tbtn.solo { border: 1px solid var(--line); }
   .tbtn.play.on { background: var(--accent); color: #1a1205; }
   .tbtn[disabled] { opacity: 0.4; }
@@ -249,6 +258,7 @@
   .mk-run { fill: var(--save); }
   .mk-pass { fill: var(--accent); }
   .mk-dribble { fill: var(--blue); }
+  .mk-shot { fill: var(--goal); }
   svg.court .tk { cursor: grab; }
   svg.court .tk-lbl { font-family:'Instrument Sans',sans-serif; font-weight: 700; text-anchor: middle;
     dominant-baseline: central; pointer-events: none; }
@@ -259,6 +269,7 @@
   svg.court .pth.run { stroke: var(--save); stroke-dasharray: 0.46 0.3; }
   svg.court .pth.pass { stroke: var(--accent); }
   svg.court .pth.dribble { stroke: var(--blue); stroke-dasharray: 0.17 0.15; }
+  svg.court .pth.shot { stroke: var(--goal); }
   svg.court .pth.hit { stroke: transparent; stroke-width: 0.8; cursor: pointer; }
   svg.court .pth.sel { stroke: var(--ink); }
   svg.court .phbadge { font-size: 0.62px; font-weight: 700; text-anchor: middle;
@@ -339,6 +350,11 @@
   .help-body ul { margin: 8px 0 0; padding-left: 20px; }
   .help-body li { margin-bottom: 6px; }
 
+  /* Under 1300 px räcker knapparnas egna namn och färgprickar — etiketterna tar plats. */
+  @media (max-width: 1300px) {
+    .toolbar .tpair.opt > .tlabel { display: none; }
+  }
+
   /* ---------- Smala skärmar ---------- */
   .menubtn { display: none; position: fixed; left: 12px; bottom: 12px; z-index: 45;
     width: 52px; height: 52px; background: var(--panel); color: var(--ink);
@@ -375,20 +391,21 @@
 <!-- ============ RITA ============ -->
 <div class="view draw on" id="vDraw">
   <div class="toolbar">
-    <span class="tpair"><span class="tlabel">Läge</span>
+    <span class="tpair opt"><span class="tlabel">Läge</span>
       <span class="grp">
         <button class="tbtn on" data-mode="move"><span data-svg="hand"></span>Flytta</button>
         <button class="tbtn" data-mode="path"><span data-svg="pen"></span>Bana</button>
       </span></span>
-    <span class="tpair"><span class="tlabel">Bana</span>
+    <span class="tpair opt"><span class="tlabel">Bana</span>
       <span class="grp">
         <button class="tbtn on" data-ptype="run">Löpväg</button>
         <button class="tbtn" data-ptype="pass">Passning</button>
-        <button class="tbtn" data-ptype="dribble">Dribbling</button>
+        <button class="tbtn" data-ptype="dribble">Löpväg med boll</button>
+        <button class="tbtn" data-ptype="shot">Skott</button>
       </span></span>
     <span class="tpair"><span class="tlabel">Steg</span>
       <span class="grp" id="stepBtns"></span></span>
-    <span class="tpair"><span class="tlabel">Försvar</span>
+    <span class="tpair opt"><span class="tlabel">Försvar</span>
     <select id="defSelect">
       <option value="none">Inget</option>
       <option value="6-0">6-0</option>
@@ -398,7 +415,7 @@
     </select></span>
     <button class="tbtn solo" id="undoBtn"><span data-svg="undo"></span>Ångra</button>
     <button class="tbtn solo" id="clearBtn"><span data-svg="trash"></span>Rensa</button>
-    <span class="tpair"><span class="tlabel">Visa</span>
+    <span class="tpair opt"><span class="tlabel">Visa</span>
       <span class="grp">
         <button class="tbtn on" id="tglPaths">Banor</button>
         <button class="tbtn on" id="tglNums">Nummer</button>
@@ -406,10 +423,7 @@
     <span class="sep"></span>
     <button class="tbtn solo play" id="playBtn"><span data-svg="play"></span>Play</button>
     <button class="tbtn solo" id="resetBtn"><span data-svg="reset"></span>Reset</button>
-    <select id="speedSelect">
-      <option value="normal">Normal</option>
-      <option value="slow">Långsam</option>
-    </select>
+    <button class="tbtn solo" id="speedBtn" title="Uppspelningshastighet">Normal</button>
     <button class="tbtn solo" id="presentBtn"><span data-svg="present"></span>Visning</button>
     <button class="tbtn solo" id="saveBtn"><span data-svg="save"></span>Spara</button>
   </div>
@@ -432,7 +446,8 @@
       <div class="stgrid" id="stDef"></div>
       <p class="sh">Boll</p>
       <div class="stgrid"><div class="chip ball" data-new="ball">Boll</div></div>
-      <p class="hint">Dra ut en bricka på planen. Dra den av planen för att ta bort den.</p>
+      <p class="hint">Tryck på en bricka för att ställa ut den på sin plats, eller dra ut den dit du
+        vill. Dra den av planen för att ta bort den.</p>
     </div>
     <div class="courtwrap">
       <svg class="court" id="court" viewBox="-0.7 -0.7 21.4 22.4" preserveAspectRatio="xMidYMid meet">
@@ -443,6 +458,8 @@
             orient="auto" markerUnits="strokeWidth"><path d="M0.5,1 L9.5,5 L0.5,9 Z" class="mk-pass"/></marker>
           <marker id="arwDribble" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5"
             orient="auto" markerUnits="strokeWidth"><path d="M0.5,1 L9.5,5 L0.5,9 Z" class="mk-dribble"/></marker>
+          <marker id="arwShot" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5"
+            orient="auto" markerUnits="strokeWidth"><path d="M0.5,1 L9.5,5 L0.5,9 Z" class="mk-shot"/></marker>
         </defs>
         <g id="gCourt"></g>
         <g id="gPaths"></g>
@@ -523,18 +540,20 @@
     <div class="help-body">
       <ul>
         <li>Planen ligger med målburen uppåt: <b>laget anfaller uppåt</b>.</li>
-        <li>Dra ut brickor ur sidopanelen: <b>anfallare</b> (grönt, märkta med position), <b>försvarare</b>
-          (grått, numrerade 1 ytter · 2 halv · 3 mitt · MV målvakt) och <b>bollen</b> (gul). Dra en bricka
-          av planen för att ta bort den.</li>
+        <li><b>Tryck</b> på en bricka i sidopanelen så ställs den ut på sin plats, eller <b>dra ut</b> den
+          dit du vill: <b>anfallare</b> (grönt, märkta med position), <b>försvarare</b> (grått, numrerade
+          1–6 från vänster plus MV målvakt) och <b>bollen</b> (gul). Dra en bricka av planen för att ta
+          bort den.</li>
         <li>Välj en <b>försvarsuppställning</b> i verktygsraden — sex försvarare plus målvakt ställs ut på
           en gång, och varje bricka är fritt flyttbar efteråt.</li>
         <li>Byt till läget <b>Bana</b> och dra med fingret från en bricka: linjen du drar blir brickans väg,
-          och brickan följer med fingret medan du ritar. Heldragen = löpväg, streckad = passning,
-          sicksack = dribbling.</li>
+          och brickan följer med fingret medan du ritar. Fyra sorter, var och en med sin färg:
+          <b>Löpväg</b> (grön), <b>Passning</b> (gul), <b>Löpväg med boll</b> (blå) och <b>Skott</b> (röd).</li>
         <li>Tryck <b>Play</b> — alla brickor glider samtidigt längs sina banor, steg för steg.</li>
-        <li>Mönstret kan ha <b>sex steg</b>. Varje steg börjar där det förra slutade: väljer du steg 2 visar
+        <li>Mönstret kan ha <b>sju steg</b>. Varje steg börjar där det förra slutade: väljer du steg 2 visar
           planen var alla står efter steg 1, och där ritar du vidare. En <b>passning</b> lämnar bollen hos
-          den som står vid passningens slutpunkt, så nästa steg börjar hos mottagaren.</li>
+          den som står vid passningens slutpunkt, så nästa steg börjar hos mottagaren. Ett <b>skott</b>
+          lämnar bollen där den tog vägen — ingen plockar upp den.</li>
         <li><b>Visa</b> stänger av banorna eller försvararnas nummer när planen blir för full — brickorna
           går att flytta som vanligt, och Play spelar upp mönstret även med banorna avstängda.</li>
         <li>Tryck på en ritad bana för att radera, rita om den eller flytta den till ett annat steg.
@@ -666,10 +685,14 @@ function idbClear(){
 const CATS=['Anfall','Kontring','Fasta situationer','Övningar'];
 const DEFS=['none','6-0','5-1','3-2-1','3-3'];
 const DEF_LABEL={none:'Inget försvar','6-0':'6-0','5-1':'5-1','3-2-1':'3-2-1','3-3':'3-3'};
-const PTYPE_LABEL={run:'Löpväg',pass:'Passning',dribble:'Dribbling'};
+const PTYPE_LABEL={run:'Löpväg',pass:'Passning',dribble:'Löpväg med boll',shot:'Skott'};
+const BALL_TYPES=['pass','shot'];   // banor som flyttar bollen i stället för brickan
 const ATT_POS=['VK','V9','M9','H9','HK','M6','MV'];
-const DEF_POS=['1','2','3','MV'];   // ytter · halv · mitt · målvakt
-const MAX_STEPS=6;
+/* Var en bricka landar när man trycker på den i stället för att dra ut den. */
+const ATT_HOME={ VK:[2.0,2.9], V9:[5.4,9.6], M9:[10,10.4], H9:[14.6,9.6],
+                 HK:[18.0,2.9], M6:[10,6.6], MV:[10,18.6] };
+const DEF_POS=['1','2','3','4','5','6','MV'];   // numrerade från vänster, plus målvakt
+const MAX_STEPS=7;
 
 function freshRoot(){
   return { v:3, patterns:[], trash:[], settings:{ def:'6-0', speed:'normal', theme:'dark', showPaths:true, showDefNums:true }, draft:null };
@@ -774,14 +797,15 @@ function courtMarkup(opts){
 }
 
 /* Försvarsuppställningar — sex utespelare utanför 6m-linjen plus målvakt.
-   Nummer: 3 = mittförsvarare, 2 = halvförsvarare, 1 = ytterförsvarare, MV = målvakt. */
+   Numren löper från vänster: 6-0 blir 1-6 längs 6m-linjen, och i de uppställningar
+   som har flera led numreras det bakre ledet först och de framskjutna sist. */
 const DEF_GK=[10,1.3];
 const FORMATIONS={
   'none': null,
-  '6-0':   [[3.3,3.7,'1'],[6.0,5.9,'2'],[9.0,6.6,'3'],[11.0,6.6,'3'],[14.0,5.9,'2'],[16.7,3.7,'1']],
-  '5-1':   [[3.3,3.7,'1'],[6.3,6.0,'2'],[10.0,6.6,'3'],[13.7,6.0,'2'],[16.7,3.7,'1'],[10.0,9.2,'3']],
-  '3-2-1': [[6.4,5.8,'1'],[10.0,6.6,'3'],[13.6,5.8,'1'],[7.4,8.1,'2'],[12.6,8.1,'2'],[10.0,9.5,'3']],
-  '3-3':   [[4.45,4.83,'1'],[10.0,6.6,'3'],[15.55,4.83,'1'],[6.6,8.8,'2'],[10.0,9.1,'3'],[13.4,8.8,'2']]
+  '6-0':   [[3.3,3.7,'1'],[6.0,5.9,'2'],[9.0,6.6,'3'],[11.0,6.6,'4'],[14.0,5.9,'5'],[16.7,3.7,'6']],
+  '5-1':   [[3.3,3.7,'1'],[6.3,6.0,'2'],[10.0,6.6,'3'],[13.7,6.0,'4'],[16.7,3.7,'5'],[10.0,9.2,'6']],
+  '3-2-1': [[6.4,5.8,'1'],[10.0,6.6,'2'],[13.6,5.8,'3'],[7.4,8.1,'4'],[12.6,8.1,'5'],[10.0,9.5,'6']],
+  '3-3':   [[4.45,4.83,'1'],[10.0,6.6,'2'],[15.55,4.83,'3'],[6.6,8.8,'4'],[10.0,9.1,'5'],[13.4,8.8,'6']]
 };
 
 /* ---------- Brickor: mått ---------- */
@@ -834,15 +858,15 @@ function ballToken(){ return draft.tokens.find(t=>t.kind==='ball')||null; }
    steg N är slutpunkten på den sista banan före N. En passning flyttar bollen
    och lämnar den hos den som står vid slutpunkten i nästa steg. */
 function movePathsFor(p, tokenId, s){
-  return p.paths.filter(q=>q.tokenId===tokenId && q.step===s && q.type!=='pass');
+  return p.paths.filter(q=>q.tokenId===tokenId && q.step===s && BALL_TYPES.indexOf(q.type)<0);
 }
-function passInStep(p, s){
-  const list=p.paths.filter(q=>q.step===s && q.type==='pass');
+function ballPathInStep(p, s){
+  const list=p.paths.filter(q=>q.step===s && BALL_TYPES.indexOf(q.type)>=0);
   return list.length ? list[list.length-1] : null;
 }
-function lastPassBefore(p, step){
+function lastBallPathBefore(p, step){
   let found=null;
-  for(let s=1;s<step;s++){ const q=passInStep(p,s); if(q) found=q; }
+  for(let s=1;s<step;s++){ const q=ballPathInStep(p,s); if(q) found=q; }
   return found;
 }
 function posAtStep(p, tk, step){
@@ -868,11 +892,13 @@ function ballStateAtStep(p, step){
   if(!b) return null;
   let carrier=b.attachedTo||null, free={x:b.x,y:b.y};
   for(let s=1;s<step;s++){
-    const pass=passInStep(p,s), own=movePathsFor(p,b.id,s);
-    if(pass){
-      const e=pass.pts[pass.pts.length-1];
+    const bp=ballPathInStep(p,s), own=movePathsFor(p,b.id,s);
+    if(bp){
+      const e=bp.pts[bp.pts.length-1];
       free={x:e[0],y:e[1]};
-      carrier=nearestPlayerTo(p, e, s+1, pass.tokenId===b.id?null:pass.tokenId);
+      // ett skott stannar där det tog vägen; en passning hamnar hos mottagaren
+      carrier = bp.type==='shot' ? null
+              : nearestPlayerTo(p, e, s+1, bp.tokenId===b.id?null:bp.tokenId);
     } else if(own.length){
       const e=own[own.length-1].pts[own[own.length-1].pts.length-1];
       free={x:e[0],y:e[1]};
@@ -947,9 +973,9 @@ function renderPaths(){
     if(!root.settings.showPaths) return;   // centerlinjen finns kvar, så Play fungerar ändå
     const vis=document.createElementNS(NS,'path');
     vis.setAttribute('class','pth '+p.type+(selectedPath===p.id?' sel':''));
-    vis.setAttribute('stroke-width', p.type==='pass'?'0.12':'0.1');
+    vis.setAttribute('stroke-width', p.type==='pass'?'0.12':(p.type==='shot'?'0.14':'0.1'));
     vis.setAttribute('d', d);
-    vis.setAttribute('marker-end','url(#'+(p.type==='run'?'arwRun':p.type==='pass'?'arwPass':'arwDribble')+')');
+    vis.setAttribute('marker-end','url(#'+({run:'arwRun',pass:'arwPass',dribble:'arwDribble',shot:'arwShot'}[p.type]||'arwRun')+')');
     gPaths.appendChild(vis);
 
     const hit=document.createElementNS(NS,'path');
@@ -1058,10 +1084,10 @@ function moveTokenTo(t, x, y, step){
   const dx=x-cur.x, dy=y-cur.y;
   if(!dx && !dy) return;
   if(t.kind==='ball'){
-    const pass=lastPassBefore(draft, step);
-    if(pass){                       // bollen ligger där en passning slutade → flytta slutpunkten
-      const i=pass.pts.length-1;
-      pass.pts[i]=[+(pass.pts[i][0]+dx).toFixed(2), +(pass.pts[i][1]+dy).toFixed(2)];
+    const bp=lastBallPathBefore(draft, step);
+    if(bp){                         // bollen ligger där en passning eller ett skott slutade
+      const i=bp.pts.length-1;
+      bp.pts[i]=[+(bp.pts[i][0]+dx).toFixed(2), +(bp.pts[i][1]+dy).toFixed(2)];
       return;
     }
     t.attachedTo=null;
@@ -1203,7 +1229,7 @@ function endDrag(e){
     snapshot();
     const nx=clamp(d.cur.x,0.2,C.W-0.2), ny=clamp(d.cur.y,-(C.goalD-0.2),C.yCenter-0.2);
     moveTokenTo(t, nx, ny, curStep);
-    if(t.kind==='ball' && !lastPassBefore(draft,curStep)) maybeAttachBall(t);
+    if(t.kind==='ball' && !lastBallPathBefore(draft,curStep)) maybeAttachBall(t);
     renderAll(); persist();
   } else if(d.kind==='draw'){
     const raw=d.raw;
@@ -1237,11 +1263,17 @@ document.querySelectorAll('.stencil').forEach(panel=>{
     moveGhost(e);
     const kindReal = kind==='attnum' ? 'att' : kind;
     const lblReal = kind==='attnum' ? nextAttNumber() : label;
-    function mv(ev){ moveGhost(ev); ev.preventDefault(); }
+    const x0=e.clientX, y0=e.clientY;
+    let moved=false;
+    function mv(ev){
+      if(Math.hypot(ev.clientX-x0, ev.clientY-y0)>7) moved=true;
+      moveGhost(ev); ev.preventDefault();
+    }
     function up(ev){
       document.removeEventListener('pointermove',mv);
       document.removeEventListener('pointerup',up);
       if(ghost){ ghost.remove(); ghost=null; }
+      if(!moved){ placeAtHome(kindReal, lblReal); return; }
       if(overCourtEl(ev)){
         const p=ptFromEvent(ev);
         if(kindReal==='ball'){
@@ -1263,6 +1295,35 @@ document.querySelectorAll('.stencil').forEach(panel=>{
   }, {passive:false});
 });
 function moveGhost(e){ if(ghost){ ghost.style.left=e.clientX+'px'; ghost.style.top=e.clientY+'px'; } }
+
+/* Ett tryck på en bricka i panelen ställer ut den på sin plats — dra ut den om
+   du vill välja platsen själv. */
+function homeFor(kind, label){
+  if(kind==='ball') return { x:10, y:12 };
+  if(kind==='def'){
+    if(label==='MV') return { x:DEF_GK[0], y:DEF_GK[1] };
+    const f=FORMATIONS[draft.defense] || FORMATIONS['6-0'];
+    const slot=f && f.find(a=>a[2]===label);
+    return slot ? { x:slot[0], y:slot[1] } : { x:10, y:6.6 };
+  }
+  const h=ATT_HOME[label];
+  return h ? { x:h[0], y:h[1] } : { x:10, y:12 };
+}
+function placeAtHome(kind, label){
+  const h=homeFor(kind,label);
+  let x=h.x, y=h.y, n=0;
+  while(n<8 && draft.tokens.some(t=>Math.hypot(t.x-x, t.y-y)<0.6)){ n++; x=h.x+0.95*n; y=h.y+0.55*n; }
+  snapshot();
+  if(kind==='ball'){
+    const b=ballToken();
+    if(b){ b.x=x; b.y=y; b.attachedTo=null; } else addToken('ball','',x,y);
+    maybeAttachBall(ballToken());
+  } else {
+    addToken(kind,label,x,y);
+  }
+  renderAll(); persist();
+  toast((label||'Bollen')+' utställd — dra den dit du vill');
+}
 
 /* ---------- Markerad bana ---------- */
 function selectPath(id){
@@ -1368,10 +1429,15 @@ function toggleDefNums(){
 document.getElementById('tglPaths').onclick=togglePaths;
 document.getElementById('tglNums').onclick=toggleDefNums;
 document.getElementById('prPaths').onclick=togglePaths;
-document.getElementById('speedSelect').onchange=e=>{
-  root.settings.speed=e.target.value;
-  document.getElementById('setSpeed').value=e.target.value;
-  persist();
+function syncSpeedUI(){
+  document.getElementById('speedBtn').textContent =
+    root.settings.speed==='slow' ? 'Långsam' : 'Normal';
+  document.getElementById('setSpeed').value=root.settings.speed;
+}
+document.getElementById('speedBtn').onclick=()=>{
+  root.settings.speed = root.settings.speed==='slow' ? 'normal' : 'slow';
+  syncSpeedUI(); persist();
+  toast(root.settings.speed==='slow' ? 'Långsam uppspelning' : 'Normal uppspelning');
 };
 
 /* ---------- Uppspelning ---------- */
@@ -1400,7 +1466,7 @@ function playStep(st){
       const len=cl.getTotalLength();
       if(len<0.1) return;
       let mover=owner;
-      if(p.type==='pass'){ const b=ballToken(); if(b) mover=b; }
+      if(BALL_TYPES.indexOf(p.type)>=0){ const b=ballToken(); if(b) mover=b; }
       const followers = mover.kind==='ball' ? [] :
         (carrier===mover.id ? draft.tokens.filter(t=>t.kind==='ball') : []);
       items.push({ cl, len, mover, followers, dur:durFor(len) });
@@ -1765,8 +1831,7 @@ document.getElementById('impFile').onchange=e=>{
 document.getElementById('setDef').onchange=e=>{ root.settings.def=e.target.value; persist(); toast('Standardförsvar: '+DEF_LABEL[e.target.value]); };
 document.getElementById('setSpeed').onchange=e=>{
   root.settings.speed=e.target.value;
-  document.getElementById('speedSelect').value=e.target.value;
-  persist();
+  syncSpeedUI(); persist();
 };
 document.getElementById('resetAllBtn2').onclick=()=>{
   confirmModal('Nollställ allt?','Alla sparade mönster och inställningar i den här webbläsaren tas bort. Exportera en backup först.','Nollställ',()=>{
@@ -1823,8 +1888,7 @@ function buildStencil(){
 /* ---------- Start ---------- */
 function applySettingsToUI(){
   document.getElementById('setDef').value=root.settings.def;
-  document.getElementById('setSpeed').value=root.settings.speed;
-  document.getElementById('speedSelect').value=root.settings.speed;
+  syncSpeedUI();
   document.getElementById('defSelect').value=draft.defense||'none';
   applyViewToggles();
   applyTheme();

@@ -20,14 +20,16 @@ keyframes, inga rörelsemallar. Mallar används bara för försvarsuppställning
 
 - **Rita** — halvplan med korrekt handbollsgeometri (6m, 9m, 7m, 4m, målbur), målburen uppåt så laget
   anfaller uppåt. Brickor dras ut ur sidopanelen: anfallare märkta med position (VK, V9, M9, H9, HK,
-  M6, MV) eller nummer, försvarare numrerade efter roll (1 ytter · 2 halv · 3 mitt · MV målvakt), boll.
-  Ett tryck ställer ut 6-0, 5-1, 3-2-1 eller 3-3 med målvakt — varje bricka är flyttbar efteråt.
-  Linjespråk: tunn streckad = löpväg, heldragen = passning, finstreckad = dribbling — färgerna skiljer dem
-  också (grön, gul, blå). Brickan följer med fingret medan du ritar, och **Visa** stänger av banorna eller
-  försvarets nummer när planen blir för full.
-- **Steg** — ett mönster har upp till sex steg, och varje steg börjar där det förra slutade. Väljer du
+  M6, MV) eller nummer, försvarare numrerade 1–6 från vänster plus MV, boll. Tryck på en bricka så ställs
+  den ut på sin plats, eller dra ut den dit du vill. Ett tryck ställer ut 6-0, 5-1, 3-2-1 eller 3-3 med
+  målvakt — varje bricka är flyttbar efteråt. Fyra banatyper med egen färg: **Löpväg** (grön, streckad),
+  **Passning** (gul, heldragen), **Löpväg med boll** (blå, finstreckad) och **Skott** (röd, heldragen).
+  Brickan följer med fingret medan du ritar, och **Visa** stänger av banorna eller försvarets nummer när
+  planen blir för full.
+- **Steg** — ett mönster har upp till sju steg, och varje steg börjar där det förra slutade. Väljer du
   steg 3 visar planen var alla står efter steg 2, och där ritar du vidare. En passning lämnar bollen hos
-  den som står vid passningens slutpunkt, så nästa steg börjar hos mottagaren. Play spelar stegen i ordning.
+  den som står vid passningens slutpunkt, så nästa steg börjar hos mottagaren; ett skott lämnar den där
+  den tog vägen. Play spelar stegen i ordning.
 - **Bank** — sparade mönster som kort med miniatyr renderad ur vektordatan. Sök på namn, filtrera på
   kategori och försvarsuppställning, duplicera för varianter, papperskorg i stället för hård radering.
 - **Inställningar** — export/import av hela banken (ersätt allt eller slå ihop), förvalt försvar,
@@ -41,10 +43,12 @@ Ett spelmönster är 2–3 kB. 500 mönster ≈ 1 MB — ingen lagringsrisk.
 
 - **Planen är roterad** så att målburen ligger uppåt och laget anfaller uppåt (specen sa inget om
   riktning; detta är valt).
-- **Linjespråket är ändrat** på begäran: tunn streckad löpväg, heldragen passning, finstreckad dribbling.
-  Specens sicksack för dribbling är borta — streckning ovanpå en sicksack blev oläslig.
-- **Försvarare är cirklar** som anfallarna, skilda genom grå färg och rollnummer, och uppställningarna
-  inkluderar försvarets målvakt. Specen föreslog en annan form för försvarare.
+- **Linjespråket är ändrat** på begäran: fyra typer i stället för specens tre — löpväg, passning, löpväg
+  med boll och skott, var och en med egen färg. Specens sicksack för dribbling är borta; streckning
+  ovanpå en sicksack blev oläslig.
+- **Sju steg** i stället för specens tre faser, och de heter steg.
+- **Försvarare är cirklar** som anfallarna, skilda genom grå färg och nummer 1–6 från vänster, och
+  uppställningarna inkluderar försvarets målvakt. Specen föreslog en annan form för försvarare.
 - **Hjälpen ligger under Inställningar** i stället för som ett fjärde menyval — specens meny har tre
   poster.
 - **Vyn klipps till det som används** i visningsläget och i miniatyrerna, så en tom planhalva inte
