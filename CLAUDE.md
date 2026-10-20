@@ -22,4 +22,4 @@ Det finns ingen inloggning, ingen profil, inget namn, ingen PIN och ingen välko
 
 ### Jämförelse mellan sviteappar
 
-Se jämförelsen i Trackers CLAUDE.md (`trenchrox/handball_g_trk`, avsnittet "Jämförelse mellan sviteappar").
+Jämförelsen mellan apparna finns i sviterepot `trenchrox/handbollssviten`, `CLAUDE.md`.
