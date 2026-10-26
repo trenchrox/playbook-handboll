@@ -1,5 +1,5 @@
 // Service worker för offline-stöd av Playbook
-const CACHE_NAME = 'handboll-playbook-v1';
+const CACHE_NAME = 'handboll-playbook-v2';
 const FILES_TO_CACHE = [
   './playbook.html',
   './manifest.json'
