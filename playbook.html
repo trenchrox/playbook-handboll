@@ -393,7 +393,7 @@
   <a class="navlink" id="navHome" href="https://trenchrox.github.io/handbollssviten/" style="text-decoration:none"><span class="ic">⌂</span><span>Hem</span></a>
   <button class="navlink" id="themeToggle"><span class="ic" id="themeIcon">☾</span><span id="themeLabel">Mörkt läge</span></button>
   <div class="ctx" id="navCtx"></div>
-  <div class="app-version">v1.1</div>
+  <div class="app-version" id="appVersion"></div>
 </nav>
 
 <main>
@@ -612,6 +612,8 @@
    PLAYBOOK — spelmönster för handboll
    Fristående, offline, IndexedDB. Del av Handbollssviten.
    ============================================================ */
+
+const APP_VERSION = '1.1';   // enda stället att ändra versionen på (visas i menyn och styr service workerns cache)
 
 /* ---------- Ikoner ---------- */
 const SVG = {
@@ -1960,9 +1962,11 @@ async function boot(){
 }
 boot();
 
+document.getElementById('appVersion').textContent = 'v'+APP_VERSION;
+
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('sw.js').catch(function(e){ console.warn('SW reg failed', e); });
+    navigator.serviceWorker.register('sw.js?v='+encodeURIComponent(APP_VERSION)).catch(function(e){ console.warn('SW reg failed', e); });
   });
 }
 </script>
