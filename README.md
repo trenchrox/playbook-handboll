@@ -10,7 +10,7 @@ surfplatta i liggande läge.
 | `playbook.html` | Hela appen — öppna filen, inget bygge, ingen server krävs |
 | `manifest.json`, `sw.js` | PWA: installera på hemskärmen, fungerar offline |
 | `docs/PLAYBOOK_spec_v0.1.md` | Specifikationen appen är byggd mot (original: samma namn, `.pdf`) |
-| `docs/Playbook-guide.pdf` | Guide för betatestare — 6 sidor med skärmbilder |
+| `docs/Playbook-guide.pdf` | Guide för betatestare — 6 sidor med skärmbilder (byggd ur `docs/guide.html`, `node docs/make_guide_pdf.cjs`) |
 
 ## Kärnidé
 
@@ -34,7 +34,7 @@ keyframes, inga rörelsemallar. Mallar används bara för försvarsuppställning
 - **Bank** — sparade mönster som kort med miniatyr renderad ur vektordatan. Sök på namn, filtrera på
   kategori och försvarsuppställning, duplicera för varianter, papperskorg i stället för hård radering.
 - **Inställningar** — export/import av hela banken (ersätt allt eller slå ihop), förvalt försvar,
-  uppspelningshastighet, ljust/mörkt tema.
+  uppspelningshastighet. Ljust/mörkt tema växlas med knappen längst ner i menyn.
 - **Visningsläge** — fullskärm utan redigerings-UI, stora brickor, play/reset och stegning. För att
   vända plattan mot laget i en timeout.
 
