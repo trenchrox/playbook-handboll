@@ -563,7 +563,8 @@
         <li>Tryck <b>Play</b> — alla brickor glider samtidigt längs sina banor, steg för steg.</li>
         <li>Mönstret kan ha <b>sju steg</b>. Varje steg börjar där det förra slutade: väljer du steg 2 visar
           planen var alla står efter steg 1, och där ritar du vidare. En <b>passning</b> lämnar bollen hos
-          den som står vid passningens slutpunkt, så nästa steg börjar hos mottagaren. Ett <b>skott</b>
+          den som står vid passningens slutpunkt, så nästa steg börjar hos mottagaren — är mottagaren i rörelse
+          möter bollen hen där hen hamnar och följer med vidare. Ett <b>skott</b>
           lämnar bollen där den tog vägen — ingen plockar upp den.</li>
         <li><b>Visa</b> stänger av banorna eller försvararnas nummer när planen blir för full — brickorna
           går att flytta som vanligt, och Play spelar upp mönstret även med banorna avstängda.</li>
@@ -613,7 +614,7 @@
    Fristående, offline, IndexedDB. Del av Handbollssviten.
    ============================================================ */
 
-const APP_VERSION = '1.1';   // enda stället att ändra versionen på (visas i menyn och styr service workerns cache)
+const APP_VERSION = '1.2';   // enda stället att ändra versionen på (visas i menyn och styr service workerns cache)
 
 /* ---------- Ikoner ---------- */
 const SVG = {
@@ -913,15 +914,28 @@ function posAtStep(p, tk, step){
   }
   return { x, y };
 }
-function nearestPlayerTo(p, pt, step, excludeId){
-  let best=null, bd=1e9;
-  p.tokens.forEach(tk=>{
-    if(tk.kind==='ball' || tk.id===excludeId) return;
-    const q=posAtStep(p,tk,step);
-    const d=Math.hypot(q.x-pt[0], q.y-pt[1]);
-    if(d<bd){ bd=d; best=tk; }
-  });
-  return (best && bd<2.2) ? best.id : null;
+/* Vem tar emot bollen? Avståndet mäts både till där brickan står när steget
+   börjar och till där den hamnar när steget är slut, så att en passning till
+   någon som är i rörelse landar hos hen och följer med vidare. Eget lag först:
+   en passning ska inte fastna hos en försvarare som råkar stå i vägen. */
+const CATCH_R = 2.4;
+function receiverFor(p, path, s){
+  const end=path.pts[path.pts.length-1];
+  const passer=p.tokens.find(tk=>tk.id===path.tokenId);
+  const kind=passer && passer.kind!=='ball' ? passer.kind : null;
+  function closest(sameKindOnly){
+    let best=null, bd=1e9;
+    p.tokens.forEach(tk=>{
+      if(tk.kind==='ball' || tk.id===path.tokenId) return;
+      if(sameKindOnly && kind && tk.kind!==kind) return;
+      const a=posAtStep(p,tk,s), b=posAtStep(p,tk,s+1);
+      const d=Math.min(Math.hypot(a.x-end[0], a.y-end[1]),
+                       Math.hypot(b.x-end[0], b.y-end[1]));
+      if(d<bd){ bd=d; best=tk; }
+    });
+    return (best && bd<CATCH_R) ? best.id : null;
+  }
+  return closest(true) || closest(false);
 }
 function ballStateAtStep(p, step){
   const b=p.tokens.find(tk=>tk.kind==='ball');
@@ -933,12 +947,12 @@ function ballStateAtStep(p, step){
       const e=bp.pts[bp.pts.length-1];
       free={x:e[0],y:e[1]};
       // ett skott stannar där det tog vägen; en passning hamnar hos mottagaren
-      carrier = bp.type==='shot' ? null
-              : nearestPlayerTo(p, e, s+1, bp.tokenId===b.id?null:bp.tokenId);
+      carrier = bp.type==='shot' ? null : receiverFor(p, bp, s);
     } else if(own.length){
-      const e=own[own.length-1].pts[own[own.length-1].pts.length-1];
+      const q=own[own.length-1];
+      const e=q.pts[q.pts.length-1];
       free={x:e[0],y:e[1]};
-      carrier=nearestPlayerTo(p, e, s+1, null);
+      carrier=receiverFor(p, q, s);
     }
   }
   if(carrier){
@@ -1501,13 +1515,32 @@ function playStep(st){
       if(!owner||!cl) return;
       const len=cl.getTotalLength();
       if(len<0.1) return;
-      let mover=owner;
-      if(BALL_TYPES.indexOf(p.type)>=0){ const b=ballToken(); if(b) mover=b; }
+      let mover=owner, drift=null, recvId=null;
+      if(BALL_TYPES.indexOf(p.type)>=0){
+        const b=ballToken(); if(b) mover=b;
+        if(p.type==='pass'){
+          // Ledpassning: är mottagaren i rörelse i samma steg möter bollen hen
+          // där hen hamnar, i stället för att bli liggande där linjen slutar.
+          recvId=receiverFor(draft,p,st);
+          const r=recvId && tokenById(recvId);
+          if(r){
+            const q=posAtStep(draft,r,st+1), e=p.pts[p.pts.length-1];
+            const dx=q.x+BALL_OFF.x*tScale()-e[0], dy=q.y+BALL_OFF.y*tScale()-e[1];
+            if(Math.hypot(dx,dy)>0.15) drift={dx,dy}; else recvId=null;
+          } else recvId=null;
+        }
+      }
       const followers = mover.kind==='ball' ? [] :
         (carrier===mover.id ? draft.tokens.filter(t=>t.kind==='ball') : []);
-      items.push({ cl, len, mover, followers, dur:durFor(len) });
+      items.push({ cl, len, mover, followers, drift, recvId, dur:durFor(len) });
     });
     if(!items.length){ resolve(); return; }
+    // en ledpassning tar lika lång tid som mottagarens löpning, så de möts
+    const moveDur={};
+    items.forEach(it=>{ if(it.mover.kind!=='ball')
+      moveDur[it.mover.id]=Math.max(moveDur[it.mover.id]||0, it.dur); });
+    items.forEach(it=>{ if(it.recvId && moveDur[it.recvId])
+      it.dur=Math.max(it.dur, moveDur[it.recvId]); });
     items.forEach(it=>{
       const s=it.cl.getPointAtLength(0);
       setLivePos(it.mover, s.x, s.y);
@@ -1519,10 +1552,11 @@ function playStep(st){
       if(!anim.running){ resolve(); return; }
       const el=now-t0;
       items.forEach(it=>{
-        const t=clamp(el/it.dur,0,1);
-        const pt=it.cl.getPointAtLength(easeInOut(t)*it.len);
-        setLivePos(it.mover, pt.x, pt.y);
-        it.followers.forEach(f=>setLivePos(f, pt.x+BALL_OFF.x*tScale(), pt.y+BALL_OFF.y*tScale()));
+        const t=clamp(el/it.dur,0,1), e=easeInOut(t);
+        const pt=it.cl.getPointAtLength(e*it.len);
+        const x=pt.x+(it.drift? it.drift.dx*e : 0), y=pt.y+(it.drift? it.drift.dy*e : 0);
+        setLivePos(it.mover, x, y);
+        it.followers.forEach(f=>setLivePos(f, x+BALL_OFF.x*tScale(), y+BALL_OFF.y*tScale()));
       });
       if(el>=total){ resolve(); return; }
       anim.raf=requestAnimationFrame(frame);
