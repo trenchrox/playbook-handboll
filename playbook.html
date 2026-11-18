@@ -116,6 +116,13 @@
     border-top: 1px solid var(--line); }
   nav .ctx b { color: var(--ink-dim); }
 
+  /* ---------- Inbäddat läge (iframe i PracticePlanner, ?embed=1) ---------- */
+  .emb-only, .tbtn.emb-only { display: none; }
+  body.embed nav, body.embed #menuBtn, body.embed #navBtn, body.embed #presentBtn, body.embed #saveBtn { display: none !important; }
+  body.embed .emb-only, body.embed .tbtn.emb-only { display: inline-flex; align-items: center; }
+  .emb-title { font: 700 16px 'Instrument Sans', sans-serif; color: var(--ink); padding: 0 10px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tbtn.done { background: var(--accent); color: #1a1205; border-color: var(--accent); font-weight: 700; }
+
   /* ---------- Main ---------- */
   main { flex: 1; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
     background: var(--main-grad); }
@@ -401,6 +408,9 @@
 <!-- ============ RITA ============ -->
 <div class="view draw on" id="vDraw">
   <div class="toolbar">
+    <button class="tbtn solo emb-only" id="embCancel">Avbryt</button>
+    <span class="emb-only emb-title" id="embTitle"></span>
+    <button class="tbtn solo emb-only done" id="embDone"><span data-svg="save"></span>Klar</button>
     <button class="tbtn solo" id="navBtn" aria-label="Visa menyn"><span data-svg="menu"></span></button>
     <span class="tpair opt"><span class="tlabel">Läge</span>
       <span class="grp">
@@ -614,7 +624,7 @@
    Fristående, offline, IndexedDB. Del av Handbollssviten.
    ============================================================ */
 
-const APP_VERSION = '1.2';   // enda stället att ändra versionen på (visas i menyn och styr service workerns cache)
+const APP_VERSION = '1.3';   // enda stället att ändra versionen på (visas i menyn och styr service workerns cache)
 
 /* ---------- Ikoner ---------- */
 const SVG = {
@@ -780,8 +790,13 @@ function normalizePattern(p, keepEmpty){
 let root=freshRoot();
 let draft=freshDraft();
 
+/* Inbäddat läge: appen ligger i en iframe i en annan sviteapp (PracticePlanner) och skickar
+   bara tillbaka ritningen. Den läser och skriver aldrig Playbooks egen databas. */
+const EMBED = (function(){ try { return new URLSearchParams(location.search).get('embed')==='1' && window.parent!==window; } catch(e){ return false; } })();
+
 let saveTimer=null;
 function persist(){
+  if(EMBED) return;
   clearTimeout(saveTimer);
   saveTimer=setTimeout(()=>{
     root.draft=draft;
@@ -1972,6 +1987,7 @@ function applySettingsToUI(){
   applyTheme();
 }
 async function boot(){
+  if(EMBED) document.body.classList.add('embed');
   paintIcons();
   buildStencil();
   buildStepButtons();
@@ -1979,9 +1995,10 @@ async function boot(){
   fillSelect(document.getElementById('bankCat'), CATS);
   fillSelect(document.getElementById('bankDef'), DEFS, DEF_LABEL);
   let stored=null;
-  try { stored=await idbGet(IDB_KEY); } catch(e){ console.warn('IndexedDB otillgänglig', e); }
+  if(!EMBED){ try { stored=await idbGet(IDB_KEY); } catch(e){ console.warn('IndexedDB otillgänglig', e); } }
   root=normalizeRoot(stored);
-  if(root.draft){ draft=root.draft; }
+  if(EMBED){ draft=freshDraft(); }
+  else if(root.draft){ draft=root.draft; }
   else {
     draft=freshDraft();
     draft.defense=root.settings.def;
@@ -1993,6 +2010,42 @@ async function boot(){
   syncUndoBtn();
   renderAll(); renderBank();
   setPlayUI(false);
+  if(EMBED) embedStart();
+}
+
+/* ---------- Inbäddat läge: meddelanden till och från föräldersidan ----------
+   Protokoll (bara samma adress, version 1):
+     Playbook -> förälder  {type:'svit:ready'}                       när appen är laddad
+     förälder -> Playbook  {type:'svit:load', theme, title, diagram?}  diagram = befintlig ritning att redigera
+     Playbook -> förälder  {type:'svit:diagram', diagram}            när man trycker Klar
+     Playbook -> förälder  {type:'svit:cancel'}                      när man trycker Avbryt
+   diagram = {schema:'handbollssviten/diagram@1', court:'half', defense, tokens[], paths[]}  (samma form som ett mönster) */
+const DIAGRAM_SCHEMA='handbollssviten/diagram@1';
+function embedPost(msg){ try { window.parent.postMessage(Object.assign({version:1}, msg), location.origin); } catch(e){ console.warn(e); } }
+function embedStart(){
+  window.addEventListener('message', e=>{
+    if(e.origin!==location.origin || e.source!==window.parent) return;
+    const m=e.data;
+    if(!m || m.type!=='svit:load') return;
+    if(m.theme==='light' || m.theme==='dark') root.settings.theme=m.theme;
+    const d=m.diagram;
+    const p=(d && Array.isArray(d.tokens)) ? normalizePattern({tokens:d.tokens, paths:d.paths, defense:d.defense}, true) : null;
+    draft=p || freshDraft();
+    if(!p) draft.defense='none';
+    undoStack.length=0;
+    document.getElementById('embTitle').textContent = typeof m.title==='string' ? m.title : '';
+    applySettingsToUI(); setStep(1); setMode('move'); syncUndoBtn(); renderAll();
+  });
+  document.getElementById('embDone').onclick=()=>{
+    if(!draft.tokens.length && !draft.paths.length){ toast('Rita något först'); return; }
+    const c=JSON.parse(JSON.stringify({tokens:draft.tokens, paths:draft.paths}));
+    embedPost({type:'svit:diagram', diagram:{schema:DIAGRAM_SCHEMA, court:'half', defense:draft.defense||'none', tokens:c.tokens, paths:c.paths}});
+  };
+  document.getElementById('embCancel').onclick=()=>{
+    if(undoStack.length && !confirm('Kasta ändringarna?')) return;
+    embedPost({type:'svit:cancel'});
+  };
+  embedPost({type:'svit:ready'});
 }
 boot();
 

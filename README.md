@@ -55,6 +55,10 @@ Ett spelmönster är 2–3 kB. 500 mönster ≈ 1 MB — ingen lagringsrisk.
 - **Vyn klipps till det som används** i visningsläget och i miniatyrerna, så en tom planhalva inte
   äter skärm. Ritytan visar hela halvplanen och datamodellen är oförändrad.
 
+## Ritverktyg åt andra appar
+
+PracticePlanner öppnar Playbook i en iframe (`playbook.html?embed=1`) för att rita planbilder till övningar. Då visas bara ritytan med **Avbryt** och **Klar**, och inget sparas i Playbooks egen bank. Se `CLAUDE.md`, "Inbäddat läge".
+
 ## Integritet
 
 Playbook hanterar taktik, inte personer. Brickor märks med position eller nummer — aldrig med barns

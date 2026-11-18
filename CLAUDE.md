@@ -29,6 +29,20 @@ Det finns ingen inloggning, ingen profil, inget namn, ingen PIN och ingen välko
 - **Fetch är nätverk-först för HTML och cache-först för allt annat.** Det är avsiktligt: med cache-först hela vägen serveras den gamla HTML-filen, som registrerar samma `sw.js?v=`-URL, så webbläsaren ser ingen ändring och en ny version når aldrig en enhet som redan har appen. Nätverk-först bryter den låsningen; offline faller den tillbaka på den cachade appen.
 - `index.html` är en liten omdirigering till `playbook.html` så att rotadressen öppnar appen i stället för att Pages renderar `README.md`. `.nojekyll` stänger av Jekyll.
 
+## Inbäddat läge (v1.3)
+
+PracticePlanner använder Playbook som ritverktyg för planbilder. Planeraren öppnar `playbook.html?embed=1` i en `iframe` (helskärm), och ritningen skickas tillbaka med `postMessage`. Ingen navigering och ingen delad lagring behövs.
+
+- **Aktivering:** `EMBED` är sann bara om `?embed=1` finns **och** sidan ligger i en iframe (`window.parent !== window`). Öppnas `?embed=1` direkt i en flik fungerar appen som vanligt.
+- **I inbäddat läge:** menyn, Visning och Spara är dolda (`body.embed`), och verktygsraden börjar med **Avbryt**, övningens namn och **Klar**. Appen startar med ett tomt utkast utan försvar, **läser eller skriver aldrig `handball_playbook`** (`persist()` gör inget) och rör inte bankens utkast.
+- **Protokoll** (version 1, bara samma adress: `e.origin === location.origin` och `e.source === window.parent` kontrolleras åt båda håll):
+  - Playbook → förälder `{type:'svit:ready'}` när appen är laddad.
+  - Förälder → Playbook `{type:'svit:load', theme, title, diagram?}`. `diagram` är en befintlig ritning att redigera, annars börjar man på tom plan.
+  - Playbook → förälder `{type:'svit:diagram', diagram}` vid **Klar**. Ritningen måste ha minst en bricka eller bana.
+  - Playbook → förälder `{type:'svit:cancel'}` vid **Avbryt** (frågar om ändringar ska kastas om något ritats).
+- **Ritningens form** (`handbollssviten/diagram@1`): `{schema, court:'half', defense, tokens[], paths[]}`. `tokens` och `paths` har samma form som i ett mönster (`{id, kind, label, x, y, attachedTo}` och `{id, tokenId, step, type, pts}`, koordinater i meter på halvplanen). Mottagaren ska rensa den (okända fält bort, längder och antal begränsade).
+- **Ändra inte** formen eller meddelandena utan att ändra PracticePlanner i samma veva. Versionen i meddelandena (`version`) höjs vid brytande ändring.
+
 ### Jämförelse mellan sviteappar
 
 Jämförelsen mellan apparna finns i sviterepot `trenchrox/handbollssviten`, `CLAUDE.md`.
