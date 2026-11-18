@@ -46,3 +46,11 @@ PracticePlanner använder Playbook som ritverktyg för planbilder. Planeraren ö
 ### Jämförelse mellan sviteappar
 
 Jämförelsen mellan apparna finns i sviterepot `trenchrox/handbollssviten`, `CLAUDE.md`.
+
+## Gemensam ID- och datastandard
+
+`suite-schema.md` i repots rot är sviteövergripande ID- och dataformat (version 1, med tillägg 2026-11-18): ID-prefix, övningskoder, dataformat för träningsgrupper, övningar, pass och planbilder (`diagram@1`) samt export och import.
+
+- Filen är en **kopia** som ska vara lika i alla repon (PracticePlanner, Playbook, Tracker, Teambuilder, Match Summary och handbollssviten). Ändra den inte här för sig: uppdatera alla kopior samtidigt.
+- Standarden gäller **nya** ID:n och de format apparna utbyter. Playbook följer den inte fullt ut än: befintliga ID:n har andra format och får inte ändras utan migrering.
+- Playbook skapar `handbollssviten/diagram@1` när appen körs inbäddat (se "Inbäddat läge").
